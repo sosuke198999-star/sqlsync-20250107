@@ -1,0 +1,208 @@
+# =========================
+# クレームDB：Replit一括セットアップ
+# （ShellにコピペでOK）
+# =========================
+set -e
+
+# 1) 依存パッケージ
+cat > requirements.txt <<'EOF'
+fastapi
+uvicorn
+EOF
+
+# 2) 実行コマンド設定（Runボタン対応）
+cat > .replit <<'EOF'
+run = "uvicorn main:app --host 0.0.0.0 --port 8000"
+EOF
+
+# 3) 最小実装API（MVP）
+cat > main.py <<'EOF'
+from fastapi import FastAPI, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
+from pydantic import BaseModel
+from typing import Optional, List
+from datetime import datetime
+import sqlite3, uuid
+
+app = FastAPI(title="Claim DB (Replit MVP)")
+
+# ---- DBヘルパ ----
+def db():
+    conn = sqlite3.connect("claims.db")
+    conn.row_factory = sqlite3.Row
+    return conn
+
+def init():
+    con = db(); cur = con.cursor()
+    cur.execute("""
+    CREATE TABLE IF NOT EXISTS claims (
+      id TEXT PRIMARY KEY,
+      icar_no TEXT UNIQUE,
+      customer_name TEXT NOT NULL,
+      symptom TEXT NOT NULL,
+      priority TEXT CHECK(priority IN ('LOW','MEDIUM','HIGH','CRITICAL')) DEFAULT 'MEDIUM',
+      status TEXT NOT NULL,
+      received_date TEXT NOT NULL,
+      due_date TEXT,
+      created_by TEXT,
+      assignee_factory TEXT,
+      assignee_tech TEXT,
+      corrective_action TEXT,
+      preventive_action TEXT,
+      created_at TEXT NOT NULL
+    )""")
+    con.commit(); con.close()
+
+init()
+
+# ---- モデル ----
+class ClaimCreate(BaseModel):
+    customer_name: str
+    symptom: str
+    priority: str = "MEDIUM"
+    due_date: Optional[str] = None
+    created_by: str = "sales"
+
+class ClaimStatusUpdate(BaseModel):
+    status: str
+    corrective_action: Optional[str] = None
+    preventive_action: Optional[str] = None
+
+class Claim(BaseModel):
+    id: str
+    icar_no: str
+    customer_name: str
+    symptom: str
+    priority: str
+    status: str
+    received_date: str
+    due_date: Optional[str]
+    created_by: str
+    created_at: str
+
+def to_claim(row) -> Claim:
+    return Claim(
+        id=row["id"],
+        icar_no=row["icar_no"],
+        customer_name=row["customer_name"],
+        symptom=row["symptom"],
+        priority=row["priority"],
+        status=row["status"],
+        received_date=row["received_date"],
+        due_date=row["due_date"],
+        created_by=row["created_by"],
+        created_at=row["created_at"],
+    )
+
+@app.get("/")
+def root():
+    return {"ok": True, "message": "Claim DB is running. Go to /docs"}
+
+# 新規登録（営業）
+@app.post("/claims", response_model=Claim)
+def create_claim(body: ClaimCreate):
+    con = db(); cur = con.cursor()
+    cid = str(uuid.uuid4())
+    icar = datetime.now().strftime("%Y%m") + "-" + cid[:4]
+    now = datetime.now().isoformat(timespec="seconds")
+    cur.execute("""
+      INSERT INTO claims(id, icar_no, customer_name, symptom, priority, status, received_date, due_date, created_by, created_at)
+      VALUES (?, ?, ?, ?, ?, 'NEW', date('now','localtime'), ?, ?, ?)
+    """, (cid, icar, body.customer_name, body.symptom, body.priority, body.due_date, body.created_by, now))
+    con.commit()
+    row = cur.execute("SELECT * FROM claims WHERE id=?", (cid,)).fetchone()
+    con.close()
+    return to_claim(row)
+
+# 一覧
+@app.get("/claims", response_model=List[Claim])
+def list_claims():
+    con = db(); cur = con.cursor()
+    rows = cur.execute("SELECT * FROM claims ORDER BY created_at DESC").fetchall()
+    con.close()
+    return [to_claim(r) for r in rows]
+
+# 詳細
+@app.get("/claims/{claim_id}", response_model=Claim)
+def get_claim(claim_id: str):
+    con = db(); cur = con.cursor()
+    row = cur.execute("SELECT * FROM claims WHERE id=?", (claim_id,)).fetchone()
+    con.close()
+    if not row:
+        raise HTTPException(404, "claim not found")
+    return to_claim(row)
+
+# ステータス更新（技術/工場）
+@app.patch("/claims/{claim_id}")
+def update_claim(claim_id: str, body: ClaimStatusUpdate):
+    con = db(); cur = con.cursor()
+    cur.execute("""
+      UPDATE claims
+         SET status=?, corrective_action=COALESCE(?, corrective_action),
+             preventive_action=COALESCE(?, preventive_action)
+       WHERE id=?
+    """, (body.status, body.corrective_action, body.preventive_action, claim_id))
+    if cur.rowcount == 0:
+        con.close()
+        raise HTTPException(404, "claim not found")
+    con.commit(); con.close()
+    return {"ok": True, "id": claim_id, "status": body.status}
+
+# CORS（必要ならフロントから叩けるように）
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"], allow_credentials=True,
+    allow_methods=["*"], allow_headers=["*"],
+)
+EOF
+
+# 4) README（要件定義を貼付）
+cat > README.md <<'EOF'
+# 🧾 クレームDB 要件定義書（Replit実装用）
+
+## 1. 目的
+- 営業・技術・工場の3部署間での **クレーム進捗の一元管理**
+- クレーム情報の **蓄積・検索・分析**（再発防止/品質改善）
+- **メール通知**による抜け漏れ防止
+
+## 2. 部門と役割（RBAC）
+- 営業（Sales）：起票・進捗確認
+- 技術（Tech）：受付、工場依頼、報告確認・承認/差戻し
+- 工場（Factory）：調査・報告書登録
+- 管理者（Admin）：ユーザー/マスタ/監査/分析
+
+## 3. システム構成
+- FastAPI + SQLite（MVP） → 将来 Supabase/PostgreSQL
+- 認証：JWT（拡張予定）
+- メール：SMTP or Graph API（拡張予定）
+- スケジュール：APScheduler（期限リマインド、拡張予定）
+- タイムゾーン：Asia/Bangkok
+- UI：/docs（Swagger）→ 将来Jinja/React
+
+## 4. クレーム処理フロー（状態イメージ）
+NEW → WAITING_TECH → REQUESTED_FACTORY → WAITING_FACTORY_REPORT → TECH_REVIEW → (FACTORY_REWORK) → COMPLETED
+
+- 営業：クレーム登録
+- 技術：受付→工場依頼（自動通知）
+- 工場：報告登録
+- 技術：承認→営業へ完了通知（拡張）
+- 差戻し：TECH_REVIEW→FACTORY_REWORK
+
+## 5. 主要データ項目（claims）
+- icar_no, customer_name, symptom, priority（LOW/MEDIUM/HIGH/CRITICAL）
+- status, received_date, due_date
+- assignee_tech, assignee_factory
+- corrective_action, preventive_action
+- created_by, created_at, updated_at, closed_at（拡張）
+
+## 6. 権限マトリクス（MVP想定）
+- 営業：登録/参照
+- 技術：依頼/承認/差戻し/参照
+- 工場：報告入力/参照
+- 管理：全権、監査ログ/マスタ（拡張）
+
+## 7. KPI・分析（例）
+- 平均リードタイム（受付→完了）
+- 期限遵守率
+- 原因別/顧客別件数、月次トレンド
+- SQL例（平均日数）:
