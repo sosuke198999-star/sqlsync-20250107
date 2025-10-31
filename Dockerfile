@@ -11,6 +11,11 @@ FROM node:20-alpine AS build
 WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
+# Debug: list client src lib to ensure the file is present in the Docker build context
+RUN echo "--- DEBUG: listing client/src ---" && ls -la client/src || true
+RUN echo "--- DEBUG: listing client/src/lib ---" && ls -la client/src/lib || true
+
+# Build the app
 RUN npm run build
 
 FROM node:20-alpine AS runner
