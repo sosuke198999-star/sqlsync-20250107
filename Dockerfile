@@ -11,6 +11,8 @@ FROM node:20-alpine AS build
 WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
+# Ensure client lib is explicitly copied (some build contexts may omit nested folders)
+COPY client/src/lib ./client/src/lib
 # Debug: list client src lib to ensure the file is present in the Docker build context
 RUN echo "--- DEBUG: listing client/src ---" && ls -la client/src || true
 RUN echo "--- DEBUG: listing client/src/lib ---" && ls -la client/src/lib || true
