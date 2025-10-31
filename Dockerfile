@@ -3,7 +3,9 @@
 FROM node:20-alpine AS deps
 WORKDIR /app
 COPY package*.json ./
-RUN npm ci --ignore-scripts
+# `npm ci` requires a package-lock.json. This project currently excludes package-lock.json
+# so use `npm install` including dev dependencies (esbuild etc.) required during the build stage.
+RUN npm install --include=dev --ignore-scripts --no-audit --no-fund
 
 FROM node:20-alpine AS build
 WORKDIR /app
