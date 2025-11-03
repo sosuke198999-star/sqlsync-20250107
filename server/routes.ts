@@ -101,4 +101,216 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       }
 
-  
+      // Try to create the Google Drive folder at registration time (best-effort)
+      try {
+        const folderId = await ensureTcarFolder(claim.tcarNo);
+        console.log(`[drive] ensured folder for ${claim.tcarNo}: ${folderId}`);
+      } catch (e) {
+        const msg = (e as any)?.message || String(e);
+        console.warn('[drive] ensureTcarFolder failed:', msg);
+      }
+
+      // Fire-and-forget email notification for claim creation based on workflow settings
+      try {
+        const recipients = await getRecipientsFor('onClaimCreated');
+        const configured = isEmailConfigured();
+        if (!configured) {
+          console.warn('[mail] Not configured: set MAIL_FROM and SMTP_*/GMAIL_OAUTH2_* envs');
+        }
+        if (recipients.length === 0) {
+          console.warn('[mail] No recipients for onClaimCreated; configure notification settings');
+        }
+        if (configured && recipients.length > 0) {
+          console.log(`[mail] sending claim-created email to ${recipients.join(',')}`);
+          void sendClaimCreatedEmail(claim, recipients);
+        }
+      } catch (e) {
+        console.warn('[mail] Failed to enqueue claim-created email:', (e as any)?.message || String(e));
+      }
+      res.status(201).json(claim);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ error: 'Validation failed', details: error.errors });
+      }
+      res.status(500).json({ error: 'Failed to create claim' });
+    }
+  });
+
+  app.patch('/api/claims/:id', async (req, res) => {
+    try {
+      const validatedUpdates = updateClaimSchema.parse(req.body);
+      const prev = await storage.getClaim(req.params.id);
+      const claim = await storage.updateClaim(req.params.id, validatedUpdates);
+      if (!claim) {
+        return res.status(404).json({ error: 'Claim not found' });
+      }
+      // After successful update, trigger workflow notifications based on status transitions
+      try {
+        if (isEmailConfigured() && prev) {
+          if (prev.status !== claim.status) {
+            if (claim.status === 'PENDING_COUNTERMEASURE') {
+              const recipients = await getRecipientsFor('onClaimAccepted');
+              if (recipients.length > 0) {
+                void sendClaimAcceptedEmail(claim, recipients);
+              }
+            } else if (claim.status === 'COMPLETED') {
+              const [technicalRecipients, legacyRecipients] = await Promise.all([
+                getRecipientsFor('onTechnicalApproved'),
+                getRecipientsFor('onCountermeasureSubmitted'),
+              ]);
+
+              if (legacyRecipients.length > 0) {
+                void sendCountermeasureSubmittedEmail(claim, legacyRecipients);
+              }
+
+              const technicalOnly = technicalRecipients.filter(
+                (email) => !legacyRecipients.includes(email),
+              );
+              if (technicalOnly.length > 0) {
+                void sendTechnicalApprovalEmail(claim, technicalOnly);
+              }
+            }
+          }
+        }
+      } catch {}
+
+      res.json(claim);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ error: 'Validation failed', details: error.errors });
+      }
+      res.status(500).json({ error: 'Failed to update claim' });
+    }
+  });
+
+  app.delete('/api/claims/:id', async (req, res) => {
+    try {
+      const success = await storage.deleteClaim(req.params.id);
+      if (!success) {
+        return res.status(404).json({ error: 'Claim not found' });
+      }
+      res.status(204).send();
+    } catch (error) {
+      res.status(500).json({ error: 'Failed to delete claim' });
+    }
+  });
+
+  const upload = multer({ storage: multer.memoryStorage() });
+
+  app.post('/api/claims/:id/upload-document', upload.single('file'), async (req, res) => {
+    try {
+      if (!req.file) {
+        return res.status(400).json({ error: 'No file uploaded' });
+      }
+
+      const claim = await storage.getClaim(req.params.id);
+      if (!claim) {
+        return res.status(404).json({ error: 'Claim not found' });
+      }
+
+      let result: { fileId: string; webViewLink: string } | undefined;
+      try {
+        result = await uploadFileToDriveInTcarFolder(
+          claim.tcarNo,
+          req.file.originalname,
+          req.file.mimetype,
+          req.file.buffer
+        );
+      } catch (e) {
+        // Fallback to local storage when Google Drive is not configured
+        const safePrefix = (process.env.GOOGLE_DRIVE_FOLDER_NAME_PREFIX ?? 'TCAR-') + claim.tcarNo;
+        const fileName = `${safePrefix}-${req.file.originalname}`;
+        const dest = path.join(localUploadsDir, fileName);
+        await fs.promises.writeFile(dest, req.file.buffer);
+        result = { fileId: fileName, webViewLink: `/uploads/${encodeURIComponent(fileName)}` } as any;
+      }
+
+      const updatedClaim = await storage.updateClaim(req.params.id, {
+        driveFileId: result!.fileId,
+        driveFileUrl: result!.webViewLink,
+      });
+
+      res.json({
+        fileId: result.fileId,
+        fileUrl: result.webViewLink,
+        claim: updatedClaim,
+      });
+    } catch (error) {
+      console.error('Failed to upload document:', error);
+      res.status(500).json({ error: 'Failed to upload document to Google Drive' });
+    }
+  });
+
+  // Upload registration-time attachment (kept separate from countermeasure document)
+  app.post('/api/claims/:id/upload-attachment', upload.single('file'), async (req, res) => {
+    try {
+      if (!req.file) {
+        return res.status(400).json({ error: 'No file uploaded' });
+      }
+
+      const claim = await storage.getClaim(req.params.id);
+      if (!claim) {
+        return res.status(404).json({ error: 'Claim not found' });
+      }
+
+      let result: { fileId: string; webViewLink: string } | undefined;
+      try {
+        result = await uploadFileToDriveInTcarFolder(
+          claim.tcarNo,
+          req.file.originalname,
+          req.file.mimetype,
+          req.file.buffer
+        );
+      } catch (e) {
+        const safePrefix = (process.env.GOOGLE_DRIVE_FOLDER_NAME_PREFIX ?? 'TCAR-') + claim.tcarNo;
+        const fileName = `${safePrefix}-${req.file.originalname}`;
+        const dest = path.join(localUploadsDir, fileName);
+        await fs.promises.writeFile(dest, req.file.buffer);
+        result = { fileId: fileName, webViewLink: `/uploads/${encodeURIComponent(fileName)}` } as any;
+      }
+
+      const attachment = {
+        fileId: result!.fileId,
+        fileUrl: result!.webViewLink,
+        fileName: req.file.originalname,
+        uploadedAt: new Date().toISOString(),
+      };
+      const next = [...((claim as any).attachments ?? []), attachment];
+      const updatedClaim = await storage.updateClaim(req.params.id, { attachments: next } as any);
+
+      res.json({
+        fileId: result!.fileId,
+        fileUrl: result!.webViewLink,
+        attachment,
+        claim: updatedClaim,
+      });
+    } catch (error) {
+      console.error('Failed to upload attachment:', error);
+      res.status(500).json({ error: 'Failed to upload attachment' });
+    }
+  });
+
+  const httpServer = createServer(app);
+
+  // Notification settings endpoints
+  app.get('/api/notification-settings', async (_req, res) => {
+    try {
+      const payload = await loadNotificationSettings();
+      res.json(payload);
+    } catch (e) {
+      res.status(500).json({ error: 'Failed to load notification settings' });
+    }
+  });
+
+  app.post('/api/notification-settings', async (req, res) => {
+    try {
+      const payload = req.body as NotificationSettingsPayload;
+      await saveNotificationSettings(payload);
+      res.json({ ok: true });
+    } catch (e) {
+      res.status(400).json({ error: 'Failed to save notification settings' });
+    }
+  });
+
+  return httpServer;
+}
