@@ -196,4 +196,23 @@ const resources = {
       "notifications.factoryMemberPlaceholder": "例：工場 鈴木一郎",
       "notifications.factoryMemberNamePlaceholder": "例：工場 鈴木一郎",
       "notifications.factoryMemberEmailPlaceholder": "例：suzuki@example.com",
+      "notifications.addFactoryMember": "メンバーを追加",
+      "notifications.salesAssigneeLabel": "営業担当者グループ",
+      "notifications.salesAssigneeDesc": "営業担当者をグループ単位で登録し、受付時に選択できるようにします。",
+      "notifications.salesGroupLabel": "グループ一覧",
+      "notifications.addSalesGroup": "営業グループを追加",
+      "notifications.noSalesGroups": "登録されている営業担当者グループがありません。",
+      "notifications.salesGroupPlaceholder": "例：営業グループA",
+      "notifications.salesMembersLabel": "営業メンバー",
+      "notifications.noSalesMembers": "営業メンバーが追加されていません。",
+      "notifications.salesMemberPlaceholder": "例：営業 佐藤彩",
+      "notifications.salesMemberNamePlaceholder": "例：営業 佐藤彩",
+      "notifications.salesMemberEmailPlaceholder": "例：sato@example.com",
+      "notifications.addSalesMember": "営業メンバーを追加",
+
+      // Settings
+      "settings.title": "設定",
+      "settings.subtitle": "システム設定",
+      "settings.customerListTitle": "顧客名リスト",
+      "settings.customerListDesc": "新規登録で選択できる顧客名を管理します",
 ... (truncated)
