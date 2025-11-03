@@ -3,7 +3,10 @@
 FROM node:20-alpine AS deps
 WORKDIR /app
 COPY package*.json ./
-RUN npm ci --ignore-scripts
+# Use `npm install --include=dev` instead of `npm ci` so builds succeed
+# on environments without a lockfile (Render). Keep --no-audit/--no-fund
+# to reduce noise and speed up install in CI-like environments.
+RUN npm install --include=dev --no-audit --no-fund
 
 FROM node:20-alpine AS build
 WORKDIR /app
