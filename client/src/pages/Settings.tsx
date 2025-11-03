@@ -187,7 +187,7 @@ export default function Settings() {
               <SelectContent>
                 <SelectItem value="ja">日本語 (Japanese)</SelectItem>
                 <SelectItem value="en">English</SelectItem>
-                <SelectItem value="th">ไทย (Thai)</SelectItem>
+                <SelectItem value="th">ภาษาไทย (Thai)</SelectItem>
               </SelectContent>
             </Select>
           </div>

@@ -68,7 +68,6 @@ async function getReplitAccessToken() {
   if (!connectionSettings || !accessToken) {
     throw new Error('Google Drive not connected');
   }
-
   return accessToken;
 }
 

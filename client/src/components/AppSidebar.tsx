@@ -101,10 +101,10 @@ export default function AppSidebar() {
           <FileText className="h-6 w-6 text-primary" />
           <div>
             <div className="font-bold text-base">
-              {L("TSBクレーム管理", "TSB Claim Management", "TSB Claim Management")}
+              {L("TSBクレーム管理", "TSB Claim Management", "TSB การจัดการเคลม")}
             </div>
             <div className="text-xs text-muted-foreground">
-              {L("クレーム管理", "Claim Management", "Claim Management")}
+              {L("クレーム管理", "Claim Management", "การจัดการเคลม")}
             </div>
           </div>
         </div>
@@ -113,7 +113,7 @@ export default function AppSidebar() {
       <SidebarContent>
         <SidebarGroup>
           <SidebarGroupLabel>
-            {L("メインメニュー", "Main Menu", "Main Menu")}
+            {L("メインメニュー", "Main Menu", "เมนูหลัก")}
           </SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
@@ -136,7 +136,7 @@ export default function AppSidebar() {
 
         <SidebarGroup>
           <SidebarGroupLabel>
-            {L("分析", "Analytics", "Analytics")}
+            {L("分析", "Analytics", "วิเคราะห์")}
           </SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
@@ -156,7 +156,7 @@ export default function AppSidebar() {
 
         <SidebarGroup>
           <SidebarGroupLabel>
-            {L("システム", "System", "System")}
+            {L("システム", "System", "ระบบ")}
           </SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
@@ -191,7 +191,7 @@ export default function AppSidebar() {
                 <div className="font-semibold text-foreground">{user.name}</div>
               </div>
             ) : (
-              L("ログインしてください", "Please log in", "Please log in")
+              L("ログインしてください", "Please log in", "กรุณาเข้าสู่ระบบ")
             )}
           </div>
           <div className="flex items-center gap-1">

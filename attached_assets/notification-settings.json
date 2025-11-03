@@ -1,0 +1,9 @@
+{
+  "groups": [],
+  "workflowSettings": {
+    "onClaimCreated": [],
+    "onClaimAccepted": [],
+    "onCountermeasureSubmitted": [],
+    "onTechnicalApproved": []
+  }
+}

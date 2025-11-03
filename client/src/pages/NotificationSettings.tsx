@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from "react";
+﻿import { useState, useEffect, useMemo } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -8,6 +8,13 @@ import { Workflow, Plus, X, UserCog } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Badge } from "@/components/ui/badge";
 import { apiRequest } from "@/lib/queryClient";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import {
   defaultTechAssignees,
   getStoredFactoryGroups,
@@ -391,3 +398,514 @@ export default function NotificationSettings() {
         <div className="space-y-4">
           <Card>
             <CardHeader>
+              <CardTitle>{t('notifications.onClaimCreatedTitle')}</CardTitle>
+              <CardDescription>
+                {t('notifications.onClaimCreatedDesc')}
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-2">
+              {groups.length === 0 ? (
+                <p className="text-sm text-muted-foreground">
+                  {t('notifications.noGroupsCreated')}
+                </p>
+              ) : (
+                <div className="flex flex-wrap gap-2">
+                  {groups.map((group) => (
+                    <Badge
+                      key={group.id}
+                      variant={workflowSettings.onClaimCreated.includes(group.id) ? "default" : "outline"}
+                      className="cursor-pointer hover-elevate"
+                      onClick={() => toggleGroupInWorkflow('onClaimCreated', group.id)}
+                      data-testid={`badge-claim-created-${group.id}`}
+                    >
+                      {group.name}
+                    </Badge>
+                  ))}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>{t('notifications.onClaimAcceptedTitle')}</CardTitle>
+              <CardDescription>
+                {t('notifications.onClaimAcceptedDesc')}
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-2">
+              {groups.length === 0 ? (
+                <p className="text-sm text-muted-foreground">
+                  {t('notifications.noGroupsCreated')}
+                </p>
+              ) : (
+                <div className="flex flex-wrap gap-2">
+                  {groups.map((group) => (
+                    <Badge
+                      key={group.id}
+                      variant={workflowSettings.onClaimAccepted.includes(group.id) ? "default" : "outline"}
+                      className="cursor-pointer hover-elevate"
+                      onClick={() => toggleGroupInWorkflow('onClaimAccepted', group.id)}
+                      data-testid={`badge-claim-accepted-${group.id}`}
+                    >
+                      {group.name}
+                    </Badge>
+                  ))}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>{t('notifications.onCountermeasureTitle')}</CardTitle>
+              <CardDescription>
+                {t('notifications.onCountermeasureDesc')}
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-2">
+              {groups.length === 0 ? (
+                <p className="text-sm text-muted-foreground">
+                  {t('notifications.noGroupsCreated')}
+                </p>
+              ) : (
+                <div className="flex flex-wrap gap-2">
+                  {groups.map((group) => (
+                    <Badge
+                      key={group.id}
+                      variant={workflowSettings.onCountermeasureSubmitted.includes(group.id) ? "default" : "outline"}
+                      className="cursor-pointer hover-elevate"
+                      onClick={() => toggleGroupInWorkflow('onCountermeasureSubmitted', group.id)}
+                      data-testid={`badge-countermeasure-submitted-${group.id}`}
+                    >
+                      {group.name}
+                    </Badge>
+                  ))}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>{t('notifications.onTechnicalApprovedTitle')}</CardTitle>
+              <CardDescription>
+                {t('notifications.onTechnicalApprovedDesc')}
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-2">
+              {groups.length === 0 ? (
+                <p className="text-sm text-muted-foreground">
+                  {t('notifications.noGroupsCreated')}
+                </p>
+              ) : (
+                <div className="flex flex-wrap gap-2">
+                  {groups.map((group) => (
+                    <Badge
+                      key={group.id}
+                      variant={workflowSettings.onTechnicalApproved.includes(group.id) ? "default" : "outline"}
+                      className="cursor-pointer hover-elevate"
+                      onClick={() => toggleGroupInWorkflow('onTechnicalApproved', group.id)}
+                      data-testid={`badge-technical-approved-${group.id}`}
+                    >
+                      {group.name}
+                    </Badge>
+                  ))}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </div>
+      </section>
+
+      <section className="space-y-4">
+        <div className="flex items-center gap-2">
+          <UserCog className="h-5 w-5 text-primary" />
+          <h2 className="text-xl font-semibold">{t('notifications.assigneeTab')}</h2>
+        </div>
+        <div className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle>{t('notifications.assigneeTitle')}</CardTitle>
+              <CardDescription>{t('notifications.assigneeDesc')}</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <Label className="flex items-center gap-2">
+                    {t('notifications.techAssigneeLabel')}
+                  </Label>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={addTechAssignee}
+                    data-testid="button-add-tech-assignee"
+                  >
+                    <Plus className="h-4 w-4 mr-1" />
+                    {t('notifications.addTechAssignee')}
+                  </Button>
+                </div>
+                {techAssigneeList.length === 0 && (
+                  <p className="text-sm text-muted-foreground">
+                    {t('notifications.noTechAssignees')}
+                  </p>
+                )}
+                {techAssigneeList.map((assignee, index) => {
+                  const linkedUser = assignee?.userId ? userMap.get(assignee.userId) : undefined;
+                  return (
+                    <div
+                      key={`tech-${index}`}
+                      className="flex flex-col gap-2 md:grid md:grid-cols-[minmax(200px,220px)_minmax(200px,1fr)_minmax(200px,1fr)_auto] md:items-center md:gap-2"
+                    >
+                      <Select
+                        value={assignee.userId ?? manualUserValue}
+                        onValueChange={(value) => selectTechAssigneeUser(index, value)}
+                      >
+                        <SelectTrigger
+                          className="w-full md:w-full"
+                          data-testid={`select-tech-assignee-user-${index}`}
+                        >
+                          <SelectValue placeholder={t('notifications.selectUserPlaceholder')} />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value={manualUserValue}>
+                            {t('notifications.selectUserManual')}
+                          </SelectItem>
+                          {selectableUsers.map((option) => (
+                            <SelectItem key={option.id} value={option.id}>
+                              {option.label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <Input
+                        value={assignee.name}
+                        onChange={(e) => updateTechAssigneeName(index, e.target.value)}
+                        placeholder={t('notifications.techAssigneeNamePlaceholder')}
+                        data-testid={`input-tech-assignee-name-${index}`}
+                        className="md:flex-1"
+                      />
+                      <Input
+                        type="email"
+                        value={assignee.email}
+                        onChange={(e) => updateTechAssigneeEmail(index, e.target.value)}
+                        placeholder={t('notifications.techAssigneeEmailPlaceholder')}
+                        data-testid={`input-tech-assignee-email-${index}`}
+                        className="md:flex-1"
+                      />
+                      <div className="flex items-center gap-2">
+                        {linkedUser ? (
+                          <Badge variant="secondary" className="whitespace-nowrap">
+                            {t('notifications.linkedUser', { name: linkedUser.name })}
+                          </Badge>
+                        ) : null}
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => removeTechAssignee(index)}
+                          data-testid={`button-remove-tech-assignee-${index}`}
+                        >
+                          <X className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>{t('notifications.factoryAssigneeLabel')}</CardTitle>
+              <CardDescription>{t('notifications.factoryAssigneeDesc')}</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="flex items-center justify-between">
+                <Label className="flex items-center gap-2">
+                  {t('notifications.factoryGroupLabel')}
+                </Label>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={addFactoryGroup}
+                  data-testid="button-add-factory-group"
+                >
+                  <Plus className="h-4 w-4 mr-1" />
+                  {t('notifications.addFactoryGroup')}
+                </Button>
+              </div>
+              {factoryGroups.length === 0 && (
+                <p className="text-sm text-muted-foreground">
+                  {t('notifications.noFactoryGroups')}
+                </p>
+              )}
+              <div className="space-y-3">
+                {factoryGroups.map((group, index) => (
+                  <div key={`factory-group-${index}`} className="space-y-3 rounded-md border p-4">
+                    <div className="flex gap-2">
+                      <Input
+                        value={group.name}
+                        onChange={(e) => updateFactoryGroupName(index, e.target.value)}
+                        placeholder={t('notifications.factoryGroupPlaceholder')}
+                        data-testid={`input-factory-group-name-${index}`}
+                      />
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => removeFactoryGroup(index)}
+                        data-testid={`button-remove-factory-group-${index}`}
+                      >
+                        <X className="h-4 w-4" />
+                      </Button>
+                    </div>
+                    <div className="space-y-2">
+                      <Label className="text-sm font-medium text-muted-foreground">
+                        {t('notifications.factoryMembersLabel')}
+                      </Label>
+                      {group.members.length === 0 && (
+                        <p className="text-xs text-muted-foreground">
+                          {t('notifications.noFactoryMembers')}
+                        </p>
+                      )}
+                      {group.members.map((member, memberIndex) => {
+                        const linkedUser =
+                          member?.userId ? userMap.get(member.userId) : undefined;
+                        return (
+                          <div
+                            key={`factory-group-${index}-member-${memberIndex}`}
+                            className="flex flex-col gap-2 md:grid md:grid-cols-[minmax(200px,220px)_minmax(200px,1fr)_minmax(200px,1fr)_auto] md:items-center md:gap-2"
+                          >
+                            <Select
+                              value={member?.userId ?? manualUserValue}
+                              onValueChange={(value) =>
+                                selectFactoryGroupMemberUser(index, memberIndex, value)
+                              }
+                            >
+                              <SelectTrigger
+                                className="w-full md:w-full"
+                                data-testid={`select-factory-group-${index}-member-user-${memberIndex}`}
+                              >
+                                <SelectValue placeholder={t('notifications.selectUserPlaceholder')} />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value={manualUserValue}>
+                                  {t('notifications.selectUserManual')}
+                                </SelectItem>
+                                {selectableUsers.map((option) => (
+                                  <SelectItem key={option.id} value={option.id}>
+                                    {option.label}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                            <Input
+                              value={member?.name ?? ""}
+                              onChange={(e) =>
+                                updateFactoryGroupMemberName(index, memberIndex, e.target.value)
+                              }
+                              placeholder={t('notifications.factoryMemberNamePlaceholder')}
+                              data-testid={`input-factory-group-${index}-member-name-${memberIndex}`}
+                              className="md:flex-1"
+                            />
+                            <Input
+                              type="email"
+                              value={member?.email ?? ""}
+                              onChange={(e) =>
+                                updateFactoryGroupMemberEmail(index, memberIndex, e.target.value)
+                              }
+                              placeholder={t('notifications.factoryMemberEmailPlaceholder')}
+                              data-testid={`input-factory-group-${index}-member-email-${memberIndex}`}
+                              className="md:flex-1"
+                            />
+                            <div className="flex items-center gap-2">
+                              {linkedUser ? (
+                                <Badge variant="secondary" className="whitespace-nowrap">
+                                  {t('notifications.linkedUser', { name: linkedUser.name })}
+                                </Badge>
+                              ) : null}
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                size="icon"
+                                onClick={() => removeFactoryGroupMember(index, memberIndex)}
+                                data-testid={`button-remove-factory-group-${index}-member-${memberIndex}`}
+                              >
+                                <X className="h-4 w-4" />
+                              </Button>
+                            </div>
+                          </div>
+                        );
+                      })}
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => addFactoryGroupMember(index)}
+                        data-testid={`button-add-factory-member-${index}`}
+                      >
+                        <Plus className="h-4 w-4 mr-1" />
+                        {t('notifications.addFactoryMember')}
+                      </Button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>{t('notifications.salesAssigneeLabel')}</CardTitle>
+              <CardDescription>{t('notifications.salesAssigneeDesc')}</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="flex items-center justify-between">
+                <Label className="flex items-center gap-2">
+                  {t('notifications.salesGroupLabel')}
+                </Label>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={addSalesGroup}
+                  data-testid="button-add-sales-group"
+                >
+                  <Plus className="h-4 w-4 mr-1" />
+                  {t('notifications.addSalesGroup')}
+                </Button>
+              </div>
+              {salesGroups.length === 0 && (
+                <p className="text-sm text-muted-foreground">
+                  {t('notifications.noSalesGroups')}
+                </p>
+              )}
+              <div className="space-y-3">
+                {salesGroups.map((group, index) => (
+                  <div key={`sales-group-${index}`} className="space-y-3 rounded-md border p-4">
+                    <div className="flex gap-2">
+                      <Input
+                        value={group.name}
+                        onChange={(e) => updateSalesGroupName(index, e.target.value)}
+                        placeholder={t('notifications.salesGroupPlaceholder')}
+                        data-testid={`input-sales-group-name-${index}`}
+                      />
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => removeSalesGroup(index)}
+                        data-testid={`button-remove-sales-group-${index}`}
+                      >
+                        <X className="h-4 w-4" />
+                      </Button>
+                    </div>
+                    <div className="space-y-2">
+                      <Label className="text-sm font-medium text-muted-foreground">
+                        {t('notifications.salesMembersLabel')}
+                      </Label>
+                      {group.members.length === 0 && (
+                        <p className="text-xs text-muted-foreground">
+                          {t('notifications.noSalesMembers')}
+                        </p>
+                      )}
+                      {group.members.map((member, memberIndex) => {
+                        const linkedUser =
+                          member?.userId ? userMap.get(member.userId) : undefined;
+                        return (
+                          <div
+                            key={`sales-group-${index}-member-${memberIndex}`}
+                            className="flex flex-col gap-2 md:grid md:grid-cols-[minmax(200px,220px)_minmax(200px,1fr)_minmax(200px,1fr)_auto] md:items-center md:gap-2"
+                          >
+                            <Select
+                              value={member?.userId ?? manualUserValue}
+                              onValueChange={(value) =>
+                                selectSalesGroupMemberUser(index, memberIndex, value)
+                              }
+                            >
+                              <SelectTrigger
+                                className="w-full md:w-full"
+                                data-testid={`select-sales-group-${index}-member-user-${memberIndex}`}
+                              >
+                                <SelectValue placeholder={t('notifications.selectUserPlaceholder')} />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value={manualUserValue}>
+                                  {t('notifications.selectUserManual')}
+                                </SelectItem>
+                                {selectableUsers.map((option) => (
+                                  <SelectItem key={option.id} value={option.id}>
+                                    {option.label}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                            <Input
+                              value={member?.name ?? ""}
+                              onChange={(e) =>
+                                updateSalesGroupMemberName(index, memberIndex, e.target.value)
+                              }
+                              placeholder={t('notifications.salesMemberNamePlaceholder')}
+                              data-testid={`input-sales-group-${index}-member-name-${memberIndex}`}
+                              className="md:flex-1"
+                            />
+                            <Input
+                              type="email"
+                              value={member?.email ?? ""}
+                              onChange={(e) =>
+                                updateSalesGroupMemberEmail(index, memberIndex, e.target.value)
+                              }
+                              placeholder={t('notifications.salesMemberEmailPlaceholder')}
+                              data-testid={`input-sales-group-${index}-member-email-${memberIndex}`}
+                              className="md:flex-1"
+                            />
+                            <div className="flex items-center gap-2">
+                              {linkedUser ? (
+                                <Badge variant="secondary" className="whitespace-nowrap">
+                                  {t('notifications.linkedUser', { name: linkedUser.name })}
+                                </Badge>
+                              ) : null}
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                size="icon"
+                                onClick={() => removeSalesGroupMember(index, memberIndex)}
+                                data-testid={`button-remove-sales-group-${index}-member-${memberIndex}`}
+                              >
+                                <X className="h-4 w-4" />
+                              </Button>
+                            </div>
+                          </div>
+                        );
+                      })}
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => addSalesGroupMember(index)}
+                        data-testid={`button-add-sales-member-${index}`}
+                      >
+                        <Plus className="h-4 w-4 mr-1" />
+                        {t('notifications.addSalesMember')}
+                      </Button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      </section>
+
+      <div className="flex justify-end">
+        <Button onClick={handleSave} size="lg" data-testid="button-save-settings">
+          {t('notifications.saveSettings')}
+        </Button>
+      </div>
+    </div>
+  );
+}

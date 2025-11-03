@@ -230,4 +230,82 @@ class SupabaseRestStorage implements IStorage {
 
   async getClaim(id: string): Promise<Claim | undefined> {
     const url = `${this.baseUrl}/rest/v1/claims?id=eq.${encodeURIComponent(id)}&select=*`;
-  
+    const data = await this.handle<any[]>(await fetch(url, { headers: this.headers() }));
+    return data[0] ? this.normalizeClaim(data[0]) : undefined;
+  }
+
+  async getClaimByTcarNo(tcarNo: string): Promise<Claim | undefined> {
+    const url = `${this.baseUrl}/rest/v1/claims?tcar_no=eq.${encodeURIComponent(tcarNo)}&select=*`;
+    const data = await this.handle<any[]>(await fetch(url, { headers: this.headers() }));
+    return data[0] ? this.normalizeClaim(data[0]) : undefined;
+  }
+
+  async getLatestTcarForMonth(yearMonth: string): Promise<string | undefined> {
+    const like = `${yearMonth}-%`;
+    const url = `${this.baseUrl}/rest/v1/claims?select=tcar_no&tcar_no=like.${encodeURIComponent(like)}&order=tcar_no.desc&limit=1`;
+    const data = await this.handle<any[]>(await fetch(url, { headers: this.headers() }));
+    return data?.[0]?.tcar_no;
+  }
+
+  async createClaim(insertClaim: InsertClaim, tcarNo: string): Promise<Claim> {
+    const url = `${this.baseUrl}/rest/v1/claims`;
+    const payload = this.toSnakeCasePayload(insertClaim, tcarNo);
+    const data = await this.handle<any[]>(
+      await fetch(url, { method: "POST", headers: this.headers(), body: JSON.stringify(payload) })
+    );
+    return this.normalizeClaim(data[0]);
+  }
+
+  async updateClaim(id: string, updates: Partial<Claim>): Promise<Claim | undefined> {
+    const url = `${this.baseUrl}/rest/v1/claims?id=eq.${encodeURIComponent(id)}&select=*`;
+    const snake: Record<string, any> = {
+      // keep id/tcar_no immutable; server enforces it
+      customer_defect_id: updates.customerDefectId,
+      customer_name: updates.customerName,
+      part_number: updates.partNumber,
+      dc_items: updates.dcItems,
+      defect_name: updates.defectName,
+      defect_count: updates.defectCount,
+      occurrence_date: updates.occurrenceDate,
+      status: updates.status,
+      received_date: updates.receivedDate,
+      due_date: updates.dueDate,
+      remarks: updates.remarks,
+      assignee: updates.assignee,
+      assignee_tech: updates.assigneeTech,
+      assignee_factory: updates.assigneeFactory,
+      corrective_action: updates.correctiveAction,
+      preventive_action: updates.preventiveAction,
+      drive_file_id: updates.driveFileId,
+      drive_file_url: updates.driveFileUrl,
+      attachments: (updates as any).attachments,
+      created_by: updates.createdBy,
+      updated_at: new Date().toISOString(),
+    };
+    // remove undefined keys so PATCH only updates provided fields
+    Object.keys(snake).forEach((k) => snake[k] === undefined && delete snake[k]);
+
+    const data = await this.handle<any[]>(
+      await fetch(url, { method: "PATCH", headers: this.headers(), body: JSON.stringify(snake) })
+    );
+    return data[0] ? this.normalizeClaim(data[0]) : undefined;
+  }
+
+  async deleteClaim(id: string): Promise<boolean> {
+    const url = `${this.baseUrl}/rest/v1/claims?id=eq.${encodeURIComponent(id)}`;
+    const res = await fetch(url, { method: "DELETE", headers: this.headers() });
+    if (!res.ok) return false;
+    return true;
+  }
+}
+
+function buildStorage(): IStorage {
+  const supabaseUrl = process.env.SUPABASE_URL;
+  const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_ANON_KEY;
+  if (supabaseUrl && serviceKey) {
+    return new SupabaseRestStorage(supabaseUrl, serviceKey);
+  }
+  return new MemStorage();
+}
+
+export const storage = buildStorage();

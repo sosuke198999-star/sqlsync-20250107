@@ -1,9 +1,8 @@
 import i18n from 'i18next';
 import { initReactI18next } from 'react-i18next';
 
-// NOTE: Temporarily simplified to avoid huge inline translation object
-// which caused a parse error during the Docker build. Replace with
-// the full translations later (or load from JSON files).
+// Minimal, valid i18n setup used during CI/debug. Replace with
+// a proper locale-loading strategy (e.g. JSON files) when ready.
 const resources = {
   ja: { translation: { 'common.view': '詳細' } },
   en: { translation: { 'common.view': 'View' } },

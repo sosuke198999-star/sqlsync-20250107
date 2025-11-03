@@ -50,7 +50,7 @@ export default function FileUpload({ onFilesChange, onFileAdd }: FileUploadProps
 
   const handleDragLeave = useCallback((e: React.DragEvent) => {
     e.preventDefault();
-      setIsDragging(false);
+    setIsDragging(false);
   }, []);
 
   const handleClick = () => {
@@ -78,4 +78,37 @@ export default function FileUpload({ onFilesChange, onFileAdd }: FileUploadProps
         </p>
       </div>
 
-  ... (truncated) ...
+      {files.length > 0 && (
+        <div className="space-y-2">
+          {files.map((file, index) => (
+            <div
+              key={index}
+              className="flex items-center gap-3 p-3 bg-card rounded-md border"
+              data-testid={`file-item-${index}`}
+            >
+              <FileIcon className="h-5 w-5 text-muted-foreground flex-shrink-0" />
+              <div className="flex-1 min-w-0">
+                <div className="text-sm font-medium truncate">{file.name}</div>
+                <div className="text-xs text-muted-foreground">
+                  {(file.size / 1024).toFixed(1)} KB
+                </div>
+              </div>
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  removeFile(index);
+                }}
+                data-testid={`button-remove-file-${index}`}
+              >
+                <X className="h-4 w-4" />
+              </Button>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
