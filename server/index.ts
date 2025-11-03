@@ -67,7 +67,9 @@ app.use((req, res, next) => {
   const port = parseInt(process.env.PORT || '5000', 10);
 
   // Windows では reusePort が ENOTSUP になるため使わない
-  const host = process.env.HOST || '127.0.0.1';
+  // Bind to 0.0.0.0 by default so hosted environments (Render, Docker) can
+  // reach the service. You can override with HOST env var in dev if needed.
+  const host = process.env.HOST || '0.0.0.0';
   const useReusePort = process.platform !== 'win32' && process.env.REUSE_PORT === '1';
 
   const listenOpts: any = { port, host };
