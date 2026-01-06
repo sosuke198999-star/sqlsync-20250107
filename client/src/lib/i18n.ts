@@ -886,6 +886,7 @@ i18n
     resources,
     lng: localStorage.getItem('language') || 'ja',
     fallbackLng: 'ja',
+    keySeparator: false,
     interpolation: { escapeValue: false },
   });
 
