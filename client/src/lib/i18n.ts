@@ -1,7 +1,6 @@
 import i18n from 'i18next';
 import { initReactI18next } from 'react-i18next';
 
-<<<<<<< HEAD
 // Clean resources covering all keys referenced in the app.
 // If a key is missing in a language, the UI will show the key text itself.
 const resources = {
