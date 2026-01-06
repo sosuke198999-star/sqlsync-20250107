@@ -1,6 +1,7 @@
 import i18n from 'i18next';
 import { initReactI18next } from 'react-i18next';
 
+<<<<<<< HEAD
 // Clean resources covering all keys referenced in the app.
 // If a key is missing in a language, the UI will show the key text itself.
 const resources = {
@@ -888,5 +889,20 @@ i18n
     fallbackLng: 'ja',
     interpolation: { escapeValue: false },
   });
+=======
+// Minimal, valid i18n setup used during CI/debug. Replace with
+// a proper locale-loading strategy (e.g. JSON files) when ready.
+const resources = {
+  ja: { translation: { 'common.view': '詳細' } },
+  en: { translation: { 'common.view': 'View' } },
+};
+
+i18n.use(initReactI18next).init({
+  resources,
+  lng: typeof window !== 'undefined' ? localStorage.getItem('language') || 'ja' : 'ja',
+  fallbackLng: 'ja',
+  interpolation: { escapeValue: false },
+});
+>>>>>>> f8f2fc30a8a2bf5f96a86e4b6814d2b3158e9f6b
 
 export default i18n;

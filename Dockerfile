@@ -21,6 +21,12 @@ ENV NODE_ENV=production
 COPY --from=build /app/dist ./dist
 COPY --from=build /app/attached_assets ./attached_assets
 COPY package*.json ./
+<<<<<<< HEAD
+=======
+# Ensure production dependencies (e.g. dotenv) are present at runtime.
+# We copy node_modules from the deps stage which installed packages earlier.
+COPY --from=deps /app/node_modules ./node_modules
+>>>>>>> f8f2fc30a8a2bf5f96a86e4b6814d2b3158e9f6b
 
 EXPOSE 5000
 CMD ["node", "dist/index.js"]
