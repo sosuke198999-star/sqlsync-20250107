@@ -26,7 +26,7 @@ export default function Login() {
   const [, navigate] = useLocation();
   const { t } = useTranslation();
 
-  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [role, setRole] = useState<UserRole>("general");
   const [error, setError] = useState<string | null>(null);
@@ -41,13 +41,13 @@ export default function Login() {
     if (error) {
       setError(null);
     }
-  }, [name, password, role]);
+  }, [email, password, role]);
 
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
 
-    if (!name.trim()) {
-      setError(t("login.error.requiredName"));
+    if (!email.trim()) {
+      setError(t("login.error.requiredEmail"));
       return;
     }
 
@@ -58,7 +58,7 @@ export default function Login() {
 
     try {
       login({
-        name: name.trim(),
+        email: email.trim(),
         password: password.trim(),
         role,
       });
@@ -107,12 +107,13 @@ export default function Login() {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="name">{t("login.usernameLabel")}</Label>
+              <Label htmlFor="email">{t("login.emailLabel")}</Label>
               <Input
-                id="name"
-                value={name}
-                onChange={(event) => setName(event.target.value)}
-                placeholder={t("login.usernamePlaceholder")}
+                id="email"
+                type="email"
+                value={email}
+                onChange={(event) => setEmail(event.target.value)}
+                placeholder={t("login.emailPlaceholder")}
                 required
               />
             </div>

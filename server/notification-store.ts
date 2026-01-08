@@ -1,25 +1,37 @@
-import fs from 'fs';
-import path from 'path';
+import fs from "fs";
+import path from "path";
+
+export interface GroupPerson {
+  name: string;
+  email: string;
+}
 
 export interface NotificationGroup {
   id: string;
   name: string;
-  emails: string[];
+  department: string;
+  members: GroupPerson[];
+  managers: GroupPerson[];
 }
 
-export interface WorkflowNotificationSettings {
-  onClaimCreated: string[];
-  onClaimAccepted: string[];
-  onCountermeasureSubmitted: string[];
-  onTechnicalApproved: string[];
+export interface OverdueNotificationSettings {
+  enabled: boolean;
+  thresholdDays: number;
+  frequency: "once" | "daily";
+  sendTime: string; // HH:mm
 }
 
 export interface NotificationSettingsPayload {
   groups: NotificationGroup[];
-  workflowSettings: WorkflowNotificationSettings;
+  overdueSettings: OverdueNotificationSettings;
 }
 
-const settingsFile = path.resolve(import.meta.dirname, "..", "attached_assets", "notification-settings.json");
+const settingsFile = path.resolve(
+  import.meta.dirname,
+  "..",
+  "attached_assets",
+  "notification-settings.json",
+);
 
 function ensureDirExists(p: string) {
   const dir = path.dirname(p);
@@ -30,18 +42,17 @@ function ensureDirExists(p: string) {
 
 export async function loadNotificationSettings(): Promise<NotificationSettingsPayload> {
   try {
-    const buf = await fs.promises.readFile(settingsFile, 'utf-8');
+    const buf = await fs.promises.readFile(settingsFile, "utf-8");
     const parsed = JSON.parse(buf);
     return normalizeSettings(parsed);
   } catch {
-    // default empty settings
     return {
       groups: [],
-      workflowSettings: {
-        onClaimCreated: [],
-        onClaimAccepted: [],
-        onCountermeasureSubmitted: [],
-        onTechnicalApproved: [],
+      overdueSettings: {
+        enabled: false,
+        thresholdDays: 0,
+        frequency: "once",
+        sendTime: "09:00",
       },
     };
   }
@@ -50,38 +61,50 @@ export async function loadNotificationSettings(): Promise<NotificationSettingsPa
 export async function saveNotificationSettings(payload: NotificationSettingsPayload): Promise<void> {
   const normalized = normalizeSettings(payload);
   ensureDirExists(settingsFile);
-  await fs.promises.writeFile(settingsFile, JSON.stringify(normalized, null, 2), 'utf-8');
+  await fs.promises.writeFile(settingsFile, JSON.stringify(normalized, null, 2), "utf-8");
 }
 
 function normalizeSettings(obj: any): NotificationSettingsPayload {
-  const groups: NotificationGroup[] = Array.isArray(obj?.groups) ? obj.groups.map((g: any) => ({
-    id: String(g.id ?? ''),
-    name: String(g.name ?? ''),
-    emails: Array.isArray(g.emails) ? g.emails.map((e: any) => String(e ?? '').trim()).filter(Boolean) : [],
-  })).filter((g: NotificationGroup) => g.id && g.name) : [];
-
-  const wf = obj?.workflowSettings ?? {};
-  const workflowSettings: WorkflowNotificationSettings = {
-    onClaimCreated: Array.isArray(wf.onClaimCreated) ? wf.onClaimCreated.map(String) : [],
-    onClaimAccepted: Array.isArray(wf.onClaimAccepted) ? wf.onClaimAccepted.map(String) : [],
-    onCountermeasureSubmitted: Array.isArray(wf.onCountermeasureSubmitted) ? wf.onCountermeasureSubmitted.map(String) : [],
-    onTechnicalApproved: Array.isArray(wf.onTechnicalApproved) ? wf.onTechnicalApproved.map(String) : [],
+  const normalizePerson = (entry: any): GroupPerson | null => {
+    if (!entry || typeof entry !== "object") return null;
+    const name = String(entry.name ?? "").trim();
+    const email = String(entry.email ?? "").trim();
+    if (!name || !email) return null;
+    return { name, email };
   };
 
-  return { groups, workflowSettings };
-}
+  const groups: NotificationGroup[] = Array.isArray(obj?.groups)
+    ? obj.groups
+        .map((g: any) => {
+          const members = Array.isArray(g?.members)
+            ? g.members.map(normalizePerson).filter(Boolean)
+            : [];
+          const managers = Array.isArray(g?.managers)
+            ? g.managers.map(normalizePerson).filter(Boolean)
+            : [];
+          return {
+            id: String(g.id ?? "").trim(),
+            name: String(g.name ?? "").trim(),
+            department: String(g.department ?? "").trim(),
+            members: members as GroupPerson[],
+            managers: managers as GroupPerson[],
+          };
+        })
+        .filter((g: NotificationGroup) => g.id && g.name && g.department)
+    : [];
 
-export async function getRecipientsFor(eventKey: keyof WorkflowNotificationSettings): Promise<string[]> {
-  const { groups, workflowSettings } = await loadNotificationSettings();
-  const selected = new Set<string>(workflowSettings[eventKey] || []);
-  const emails = new Set<string>();
-  for (const g of groups) {
-    if (selected.has(g.id)) {
-      for (const e of g.emails) {
-        const v = String(e || '').trim();
-        if (v) emails.add(v);
-      }
-    }
-  }
-  return Array.from(emails);
+  const rawOverdue = obj?.overdueSettings ?? {};
+  const threshold = Number(rawOverdue.thresholdDays ?? 0);
+  const frequency =
+    rawOverdue.frequency === "daily" || rawOverdue.frequency === "once"
+      ? rawOverdue.frequency
+      : "once";
+  const overdueSettings: OverdueNotificationSettings = {
+    enabled: Boolean(rawOverdue.enabled),
+    thresholdDays: Number.isFinite(threshold) ? Math.max(0, Math.floor(threshold)) : 0,
+    frequency,
+    sendTime: String(rawOverdue.sendTime ?? "09:00").trim() || "09:00",
+  };
+
+  return { groups, overdueSettings };
 }

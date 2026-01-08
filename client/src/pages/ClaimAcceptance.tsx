@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useParams, useLocation, Link } from "wouter";
 import { useTranslation } from "react-i18next";
 import { ArrowLeft } from "lucide-react";
@@ -11,13 +11,14 @@ import StatusBadge from "@/components/StatusBadge";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import type { Claim } from "@shared/schema";
-import {
-  defaultTechAssignees,
-  getStoredFactoryGroups,
-  getStoredPeopleList,
-  type AssigneePerson,
-  type FactoryAssigneeGroup,
-} from "@/lib/settingsDefaults";
+type GroupPerson = { name: string; email: string };
+type NotificationGroup = {
+  id: string;
+  name: string;
+  department: string;
+  members: GroupPerson[];
+  managers: GroupPerson[];
+};
 
 export default function ClaimAcceptance() {
   const { id } = useParams<{ id: string }>();
@@ -28,13 +29,49 @@ export default function ClaimAcceptance() {
 
   const [techAssignee, setTechAssignee] = useState("");
   const [factoryAssignee, setFactoryAssignee] = useState("");
-  const techAssigneeOptions = useMemo<AssigneePerson[]>(
-    () => getStoredPeopleList('techAssigneeList', defaultTechAssignees),
-    []
+  const [groups, setGroups] = useState<NotificationGroup[]>(() => {
+    try {
+      const stored = localStorage.getItem("notificationGroupsV2");
+      if (!stored) return [];
+      const parsed = JSON.parse(stored);
+      return Array.isArray(parsed) ? parsed : [];
+    } catch {
+      return [];
+    }
+  });
+
+  useEffect(() => {
+    (async () => {
+      try {
+        const res = await fetch("/api/notification-settings", { credentials: "include" });
+        if (!res.ok) return;
+        const data = await res.json();
+        if (Array.isArray(data.groups)) {
+          setGroups(data.groups);
+        }
+      } catch {}
+    })();
+  }, []);
+
+  const getDepartmentGroup = (department: string) =>
+    groups.find((group) => group.department === department);
+
+  const techGroup = useMemo(
+    () => getDepartmentGroup("technical"),
+    [groups]
   );
-  const factoryAssigneeGroups = useMemo<FactoryAssigneeGroup[]>(
-    () => getStoredFactoryGroups(),
-    []
+  const factoryGroup = useMemo(
+    () => getDepartmentGroup("factory"),
+    [groups]
+  );
+
+  const techAssigneeOptions = useMemo(
+    () => (techGroup ? [...techGroup.members, ...techGroup.managers] : []),
+    [techGroup]
+  );
+  const factoryAssigneeOptions = useMemo(
+    () => (factoryGroup ? [...factoryGroup.members, ...factoryGroup.managers] : []),
+    [factoryGroup]
   );
 
   const { data: claim, isLoading, isError } = useQuery<Claim>({
@@ -76,7 +113,7 @@ export default function ClaimAcceptance() {
 
   const handleAccept = () => {
     if (!id) return;
-    if (techAssigneeOptions.length === 0 || factoryAssigneeGroups.length === 0) {
+    if (techAssigneeOptions.length === 0 || factoryAssigneeOptions.length === 0) {
       toast({
         title: t('acceptance.noAssigneesTitle'),
         description: t('acceptance.noAssigneesDesc'),
@@ -203,31 +240,23 @@ export default function ClaimAcceptance() {
             <Select
               value={factoryAssignee}
               onValueChange={setFactoryAssignee}
-              disabled={factoryAssigneeGroups.length === 0}
+              disabled={factoryAssigneeOptions.length === 0}
             >
               <SelectTrigger id="factory-assignee" data-testid="select-factory-assignee">
                 <SelectValue placeholder={t('acceptance.selectFactory')} />
               </SelectTrigger>
               <SelectContent>
-                {factoryAssigneeGroups.length === 0 ? (
+                {factoryAssigneeOptions.length === 0 ? (
                   <SelectItem value="__no-factory" disabled>
                     {t('acceptance.noFactoryAssignees')}
                   </SelectItem>
                 ) : (
-                  factoryAssigneeGroups.map((group) => (
-                    <SelectItem key={group.name} value={group.name}>
+                  factoryAssigneeOptions.map((person) => (
+                    <SelectItem key={person.name} value={person.name}>
                       <div className="flex flex-col">
-                        <span>{group.name}</span>
-                        {group.members.length > 0 && (
-                          <span className="text-xs text-muted-foreground">
-                            {group.members
-                              .map((member) =>
-                                member.email
-                                  ? `${member.name} <${member.email}>`
-                                  : member.name
-                              )
-                              .join(', ')}
-                          </span>
+                        <span>{person.name}</span>
+                        {person.email && (
+                          <span className="text-xs text-muted-foreground">{person.email}</span>
                         )}
                       </div>
                     </SelectItem>
@@ -235,7 +264,7 @@ export default function ClaimAcceptance() {
                 )}
               </SelectContent>
             </Select>
-            {factoryAssigneeGroups.length === 0 && (
+            {factoryAssigneeOptions.length === 0 && (
               <p className="mt-2 text-sm text-muted-foreground">
                 {t('acceptance.assigneeSettingsHint')}
               </p>

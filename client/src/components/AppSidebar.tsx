@@ -10,17 +10,18 @@ import {
   SidebarHeader,
   SidebarFooter,
 } from "@/components/ui/sidebar";
-import { Home, FileText, Plus, BarChart3, Settings, Bell, Users } from "lucide-react";
+import { Home, FileText, Plus, BarChart3, Settings, Bell, Users, LogOut } from "lucide-react";
 import { Link, useLocation } from "wouter";
 import DarkModeToggle from "./DarkModeToggle";
 import LanguageToggle from "./LanguageToggle";
 import { useTranslation } from "react-i18next";
 import { useAuth } from "@/lib/auth";
+import { Button } from "@/components/ui/button";
 
 export default function AppSidebar() {
-  const [location] = useLocation();
+  const [location, setLocation] = useLocation();
   const { t, i18n } = useTranslation();
-  const { user } = useAuth();
+  const { user, logout } = useAuth();
 
   const acceptanceTitle = t("acceptance.listTitle");
   const lang = i18n.resolvedLanguage || i18n.language || "ja";
@@ -199,6 +200,21 @@ export default function AppSidebar() {
             <DarkModeToggle />
           </div>
         </div>
+        {user ? (
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            className="w-full justify-center gap-2 mt-3"
+            onClick={() => {
+              logout();
+              setLocation("/login");
+            }}
+          >
+            <LogOut className="h-4 w-4" />
+            {t("auth.logout")}
+          </Button>
+        ) : null}
       </SidebarFooter>
     </Sidebar>
   );

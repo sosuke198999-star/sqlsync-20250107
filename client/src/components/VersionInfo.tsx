@@ -12,14 +12,19 @@ export default function VersionInfo() {
 
   useEffect(() => {
     let mounted = true;
-    fetch('/api/version')
-      .then((r) => (r.ok ? r.json() : null))
-      .then((data) => {
-        if (mounted && data) setInfo(data);
-      })
-      .catch(() => {});
+    const fetchVersion = () =>
+      fetch('/api/version', { cache: "no-store" })
+        .then((r) => (r.ok ? r.json() : null))
+        .then((data) => {
+          if (mounted && data) setInfo(data);
+        })
+        .catch(() => {});
+
+    fetchVersion();
+    const interval = window.setInterval(fetchVersion, 5 * 60 * 1000);
     return () => {
       mounted = false;
+      window.clearInterval(interval);
     };
   }, []);
 

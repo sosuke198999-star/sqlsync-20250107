@@ -1,9 +1,46 @@
 {
-  "groups": [],
-  "workflowSettings": {
-    "onClaimCreated": [],
-    "onClaimAccepted": [],
-    "onCountermeasureSubmitted": [],
-    "onTechnicalApproved": []
+  "groups": [
+    {
+      "id": "66f8bd93-fd1d-48e1-8c09-098e3094e86d",
+      "name": "APEX駐在",
+      "department": "technical",
+      "members": [],
+      "managers": [
+        {
+          "name": "Sosuke Arimoto",
+          "email": "sosuke198999@gmail.com"
+        }
+      ]
+    },
+    {
+      "id": "beef5ee2-1657-4a7b-bdf6-81f17e6b30ca",
+      "name": "CANONグループ",
+      "department": "sales",
+      "members": [],
+      "managers": [
+        {
+          "name": "Sosuke Arimoto",
+          "email": "sosuke198999@gmail.com"
+        }
+      ]
+    },
+    {
+      "id": "8bc29249-17de-4c99-bc73-67633c956f40",
+      "name": "CANONグループ",
+      "department": "factory",
+      "members": [],
+      "managers": [
+        {
+          "name": "Sosuke Arimoto",
+          "email": "sosuke198999@gmail.com"
+        }
+      ]
+    }
+  ],
+  "overdueSettings": {
+    "enabled": false,
+    "thresholdDays": 0,
+    "frequency": "once",
+    "sendTime": "09:00"
   }
 }

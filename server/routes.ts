@@ -14,20 +14,26 @@ import {
   sendTechnicalApprovalEmail,
   isEmailConfigured,
 } from "./mailer";
-import { getRecipientsFor, loadNotificationSettings, saveNotificationSettings, type NotificationSettingsPayload } from "./notification-store";
+import { loadNotificationSettings, saveNotificationSettings, type NotificationSettingsPayload } from "./notification-store";
+import { getRecipientsForEvent } from "./notification-logic";
+import { startOverdueNotifier } from "./overdue-notifier";
 
 export async function registerRoutes(app: Express): Promise<Server> {
-  // Basic version info sourced from package.json (for diagnostics/UI)
-  let appName = "rest-express";
-  let appVersion = "unknown";
-  try {
-    const pkgPath = path.resolve(import.meta.dirname, "..", "package.json");
-    const pkg = JSON.parse(fs.readFileSync(pkgPath, "utf-8"));
-    appName = pkg?.name ?? appName;
-    appVersion = pkg?.version ?? appVersion;
-  } catch {}
+  const pkgPath = path.resolve(import.meta.dirname, "..", "package.json");
+  const readVersionInfo = () => {
+    let appName = "rest-express";
+    let appVersion = "unknown";
+    try {
+      const pkg = JSON.parse(fs.readFileSync(pkgPath, "utf-8"));
+      appName = pkg?.name ?? appName;
+      appVersion = pkg?.version ?? appVersion;
+    } catch {}
+    return { appName, appVersion };
+  };
 
   app.get('/api/version', (_req, res) => {
+    const { appName, appVersion } = readVersionInfo();
+    res.set("Cache-Control", "no-store, no-cache, must-revalidate, proxy-revalidate");
     res.json({
       name: appName,
       version: appVersion,
@@ -110,15 +116,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
         console.warn('[drive] ensureTcarFolder failed:', msg);
       }
 
-      // Fire-and-forget email notification for claim creation based on workflow settings
+      // Fire-and-forget email notification for claim creation
       try {
-        const recipients = await getRecipientsFor('onClaimCreated');
+        const recipients = await getRecipientsForEvent('claimCreated', claim);
         const configured = isEmailConfigured();
         if (!configured) {
           console.warn('[mail] Not configured: set MAIL_FROM and SMTP_*/GMAIL_OAUTH2_* envs');
-        }
-        if (recipients.length === 0) {
-          console.warn('[mail] No recipients for onClaimCreated; configure notification settings');
         }
         if (configured && recipients.length > 0) {
           console.log(`[mail] sending claim-created email to ${recipients.join(',')}`);
@@ -144,27 +147,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (!claim) {
         return res.status(404).json({ error: 'Claim not found' });
       }
-      // After successful update, trigger workflow notifications based on status transitions
+      // After successful update, trigger notifications based on status transitions
       try {
         if (isEmailConfigured() && prev) {
           if (prev.status !== claim.status) {
             if (claim.status === 'PENDING_COUNTERMEASURE') {
-              const recipients = await getRecipientsFor('onClaimAccepted');
+              const recipients = await getRecipientsForEvent('claimAccepted', claim);
               if (recipients.length > 0) {
                 void sendClaimAcceptedEmail(claim, recipients);
               }
             } else if (claim.status === 'COMPLETED') {
-              const [technicalRecipients, legacyRecipients] = await Promise.all([
-                getRecipientsFor('onTechnicalApproved'),
-                getRecipientsFor('onCountermeasureSubmitted'),
+              const [technicalRecipients, counterRecipients] = await Promise.all([
+                getRecipientsForEvent('technicalApproved', claim),
+                getRecipientsForEvent('countermeasureSubmitted', claim),
               ]);
 
-              if (legacyRecipients.length > 0) {
-                void sendCountermeasureSubmittedEmail(claim, legacyRecipients);
+              if (counterRecipients.length > 0) {
+                void sendCountermeasureSubmittedEmail(claim, counterRecipients);
               }
 
               const technicalOnly = technicalRecipients.filter(
-                (email) => !legacyRecipients.includes(email),
+                (email) => !counterRecipients.includes(email),
               );
               if (technicalOnly.length > 0) {
                 void sendTechnicalApprovalEmail(claim, technicalOnly);
@@ -311,6 +314,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(400).json({ error: 'Failed to save notification settings' });
     }
   });
+
+  startOverdueNotifier();
 
   return httpServer;
 }

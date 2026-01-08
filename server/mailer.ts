@@ -196,6 +196,49 @@ export async function sendTechnicalApprovalEmail(claim: Claim, recipients?: stri
   }
 }
 
+function buildOverdueSubjectBi(claim: Claim): string {
+  return `【期限超過】TCAR-${claim.tcarNo} 対応遅延 / Overdue Claim`;
+}
+
+function buildOverdueBodyBi(claim: Claim): string {
+  const lines = [
+    '対応期限を超過したクレームがあります。',
+    '',
+    `TCAR No: ${claim.tcarNo}`,
+    `顧客名: ${claim.customerName}`,
+    `不具合名: ${claim.defectName}`,
+    `受付日: ${claim.receivedDate}`,
+    `期限: ${claim.dueDate ?? '-'}`,
+    `技術担当: ${claim.assigneeTech ?? '-'}`,
+    `工場担当: ${claim.assigneeFactory ?? '-'}`,
+    `登録者: ${claim.createdBy ?? '-'}`,
+    '',
+    'There is an overdue claim that requires attention.',
+    '',
+    `TCAR No: ${claim.tcarNo}`,
+    `Customer: ${claim.customerName}`,
+    `Defect: ${claim.defectName}`,
+    `Received Date: ${claim.receivedDate}`,
+    `Due Date: ${claim.dueDate ?? '-'}`,
+    `Tech Assignee: ${claim.assigneeTech ?? '-'}`,
+    `Factory Assignee: ${claim.assigneeFactory ?? '-'}`,
+    `Created By: ${claim.createdBy ?? '-'}`,
+  ];
+  return lines.join('\n');
+}
+
+export async function sendOverdueEmail(claim: Claim, recipients?: string[]): Promise<void> {
+  const list = recipients?.filter(Boolean) ?? [];
+  if (!list.length) return;
+  try {
+    const subject = buildOverdueSubjectBi(claim);
+    const text = buildOverdueBodyBi(claim);
+    await sendMail({ to: list, subject, text });
+  } catch (err) {
+    console.error('[mailer] Failed to send overdue email:', err);
+  }
+}
+
 // Bilingual subjects/bodies (Japanese + English)
 function buildClaimCreatedSubjectBi(claim: Claim): string {
   return `【クレーム受付】TCAR-${claim.tcarNo} 新規登録 / Claim Registered`;

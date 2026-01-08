@@ -25,7 +25,7 @@ export type RegisteredUser = {
 };
 
 export type LoginInput = {
-  name: string;
+  email: string;
   password: string;
   role: UserRole;
 };
@@ -144,12 +144,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const login = useCallback(
     (input: LoginInput) => {
-      const trimmedName = input.name.trim();
+      const trimmedEmail = input.email.trim().toLowerCase();
       const trimmedPassword = input.password.trim();
 
       const matched = users.find(
         (candidate) =>
-          candidate.name === trimmedName &&
+          candidate.email.toLowerCase() === trimmedEmail &&
           candidate.password === trimmedPassword &&
           candidate.role === input.role,
       );

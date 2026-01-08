@@ -4,11 +4,13 @@ import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import type { Claim } from "@shared/schema";
 import { useTranslation } from "react-i18next";
+import { useAuth } from "@/lib/auth";
 
 export default function NewClaim() {
   const [, setLocation] = useLocation();
   const { toast } = useToast();
   const { t } = useTranslation();
+  const { user } = useAuth();
 
   const handleSubmit = async (data: ClaimFormData) => {
     try {
@@ -26,6 +28,7 @@ export default function NewClaim() {
         receivedDate,
         remarks: data.remarks || undefined,
         assignee: data.assignee || undefined,
+        createdBy: user?.name || undefined,
       };
 
       const res = await apiRequest('POST', '/api/claims', payload);
