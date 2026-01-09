@@ -10,7 +10,7 @@ export default function ClaimCardExample() {
         defectName="エンジンから異音が発生。アイドリング時に特に顕著。"
         partNumber="P-12345-A"
         defectCount={3}
-        status="NEW"
+        status="PENDING_ACCEPTANCE"
         dueDate="2025-01-20"
         assignee="技術部 田中"
         onClick={() => console.log('View claim details')}
@@ -20,7 +20,7 @@ export default function ClaimCardExample() {
         customerName="日産自動車株式会社"
         defectName="ブレーキパッドの早期摩耗が報告されました。"
         defectCount={5}
-        status="WAITING_TECH"
+        status="PENDING_COUNTERMEASURE"
         dueDate="2025-01-25"
         assignee="技術部 佐藤"
         onClick={() => console.log('View claim details')}
@@ -30,7 +30,7 @@ export default function ClaimCardExample() {
         customerName="ホンダ技研工業株式会社"
         defectName="塗装面に色ムラが発生。品質基準を満たしていない。"
         defectCount={2}
-        status="TECH_REVIEW"
+        status="COMPLETED"
         dueDate="2025-01-15"
         assignee="工場 鈴木"
         onClick={() => console.log('View claim details')}

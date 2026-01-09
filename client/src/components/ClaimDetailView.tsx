@@ -252,42 +252,10 @@ export default function ClaimDetailView({ claim, onUpdateStatus, onSaveActions }
             <Button
               size="sm"
               variant="outline"
-              onClick={() => onUpdateStatus?.('WAITING_TECH')}
-              data-testid="button-status-waiting-tech"
-            >
-              {t('action.waitingTech')}
-            </Button>
-            <Button
-              size="sm"
-              variant="outline"
-              onClick={() => onUpdateStatus?.('REQUESTED_FACTORY')}
-              data-testid="button-status-requested-factory"
+              onClick={() => onUpdateStatus?.('PENDING_COUNTERMEASURE')}
+              data-testid="button-status-pending-countermeasure"
             >
               {t('action.requestFactory')}
-            </Button>
-            <Button
-              size="sm"
-              variant="outline"
-              onClick={() => onUpdateStatus?.('WAITING_FACTORY_REPORT')}
-              data-testid="button-status-waiting-report"
-            >
-              {t('action.waitingReport')}
-            </Button>
-            <Button
-              size="sm"
-              variant="outline"
-              onClick={() => onUpdateStatus?.('TECH_REVIEW')}
-              data-testid="button-status-tech-review"
-            >
-              {t('action.techReview')}
-            </Button>
-            <Button
-              size="sm"
-              variant="outline"
-              onClick={() => onUpdateStatus?.('FACTORY_REWORK')}
-              data-testid="button-status-rework"
-            >
-              {t('action.rework')}
             </Button>
             <Button
               size="sm"

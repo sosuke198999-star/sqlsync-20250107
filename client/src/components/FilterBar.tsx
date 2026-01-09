@@ -27,7 +27,7 @@ export default function FilterBar({ onStatusChange }: FilterBarProps) {
             <SelectItem value="all">{t('filter.all')}</SelectItem>
             <SelectItem value="PENDING_ACCEPTANCE">{t('status.PENDING_ACCEPTANCE')}</SelectItem>
             <SelectItem value="PENDING_COUNTERMEASURE">{t('status.PENDING_COUNTERMEASURE')}</SelectItem>
-            <SelectItem value="COMPLETED">{t('status.COMPLETED')}</SelectItem>
+            <SelectItem value="PENDING_APPROVAL">{t('status.PENDING_APPROVAL')}</SelectItem>
           </SelectContent>
         </Select>
       </div>

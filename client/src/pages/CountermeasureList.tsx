@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
-import type { Claim } from "@shared/schema";
+import type { Claim, ClaimStatus } from "@shared/schema";
 import ClaimsTable, { type ClaimRow } from "@/components/ClaimsTable";
 import { Button } from "@/components/ui/button";
 import { Link } from "wouter";
@@ -19,7 +19,7 @@ export default function CountermeasureList() {
     partNumber: c.partNumber || undefined,
     defectName: c.defectName,
     defectCount: c.defectCount || undefined,
-    status: c.status,
+    status: c.status as ClaimStatus,
     dueDate: c.dueDate || undefined,
     assignee: c.assignee || undefined,
   }));

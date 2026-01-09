@@ -27,7 +27,7 @@ export default function NewClaim() {
         // status is omitted to use server default (PENDING_ACCEPTANCE)
         receivedDate,
         remarks: data.remarks || undefined,
-        assignee: data.assignee || undefined,
+        assignee: user?.name || undefined,
         createdBy: user?.name || undefined,
       };
 

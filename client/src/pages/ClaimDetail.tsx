@@ -5,9 +5,21 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import ClaimDetailView, { type ClaimDetail } from "@/components/ClaimDetailView";
 import { type ClaimStatus } from "@/components/StatusBadge";
 import { Button } from "@/components/ui/button";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import type { Claim } from "@shared/schema";
+import { useAuth } from "@/lib/auth";
 
 function toClaimDetail(claim: Claim): ClaimDetail {
   const firstDc = Array.isArray((claim as any).dcItems) && claim.dcItems.length > 0
@@ -50,6 +62,7 @@ export default function ClaimDetail() {
   const { toast } = useToast();
   const { t } = useTranslation();
   const queryClient = useQueryClient();
+  const { user } = useAuth();
 
   const { data: claim, isLoading, isError } = useQuery<Claim>({
     queryKey: [`/api/claims/${id}`],
@@ -102,6 +115,33 @@ export default function ClaimDetail() {
     },
   });
 
+  const deleteMutation = useMutation({
+    mutationFn: async () => {
+      await apiRequest("DELETE", `/api/claims/${id}`, undefined, {
+        headers: {
+          "x-user-name": user?.name ?? "",
+          "x-user-role": user?.role ?? "",
+        },
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/claims"] });
+      toast({
+        title: t("detail.deleteSuccessTitle"),
+        description: t("detail.deleteSuccessDesc"),
+      });
+      setLocation("/claims");
+    },
+    onError: (error: unknown) => {
+      const message = error instanceof Error ? error.message : String(error);
+      toast({
+        title: t("detail.deleteFailedTitle"),
+        description: message,
+        variant: "destructive",
+      });
+    },
+  });
+
   if (!id) {
     setLocation("/claims");
     return null;
@@ -116,21 +156,64 @@ export default function ClaimDetail() {
   }
 
   const mappedClaim = toClaimDetail(claim);
+  const canDelete =
+    !!user &&
+    (user.role === "admin" ||
+      (claim.createdBy && user.name === claim.createdBy) ||
+      (!claim.createdBy && claim.assignee && user.name === claim.assignee));
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center gap-4">
-        <Link href="/claims">
-          <Button variant="ghost" size="icon" data-testid="button-back">
-            <ArrowLeft className="h-5 w-5" />
-          </Button>
-        </Link>
-        <div>
-          <h1 className="text-3xl font-bold mb-2" data-testid="text-page-title">
-            {t("detail.title")}
-          </h1>
-          <p className="text-muted-foreground">{t("detail.subtitle")}</p>
+      <div className="flex flex-wrap items-start justify-between gap-4">
+        <div className="flex items-start gap-4">
+          <Link href="/claims">
+            <Button variant="ghost" size="icon" data-testid="button-back">
+              <ArrowLeft className="h-5 w-5" />
+            </Button>
+          </Link>
+          <div>
+            <h1 className="text-3xl font-bold mb-2" data-testid="text-page-title">
+              {t("detail.title")}
+            </h1>
+            <p className="text-muted-foreground">{t("detail.subtitle")}</p>
+          </div>
         </div>
+        {canDelete && (
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <Button
+                variant="destructive"
+                data-testid="button-delete-claim"
+                disabled={deleteMutation.isPending}
+              >
+                {t("detail.delete")}
+              </Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>{t("detail.deleteConfirmTitle")}</AlertDialogTitle>
+                <AlertDialogDescription>
+                  {t("detail.deleteConfirmDesc")}
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel data-testid="button-delete-cancel">
+                  {t("newClaim.cancel")}
+                </AlertDialogCancel>
+                <AlertDialogAction asChild>
+                  <Button
+                    variant="destructive"
+                    data-testid="button-delete-confirm"
+                    onClick={() => deleteMutation.mutate()}
+                    disabled={deleteMutation.isPending}
+                  >
+                    {t("detail.deleteConfirmAction")}
+                  </Button>
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
+        )}
       </div>
 
       <ClaimDetailView

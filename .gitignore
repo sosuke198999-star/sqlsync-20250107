@@ -7,3 +7,5 @@ vite.config.ts.*
 .env
 
 .env.prod
+attached_assets/*.log
+attached_assets/*.err

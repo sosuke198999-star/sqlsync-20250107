@@ -4,7 +4,12 @@
       "id": "66f8bd93-fd1d-48e1-8c09-098e3094e86d",
       "name": "APEX駐在",
       "department": "technical",
-      "members": [],
+      "members": [
+        {
+          "name": "Osawa",
+          "email": "osawa@ggggggggggmail.com"
+        }
+      ],
       "managers": [
         {
           "name": "Sosuke Arimoto",

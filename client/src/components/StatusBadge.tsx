@@ -11,6 +11,7 @@ interface StatusBadgeProps {
 const statusConfig: Record<ClaimStatus, { translationKey: string; className: string }> = {
   PENDING_ACCEPTANCE: { translationKey: "status.PENDING_ACCEPTANCE", className: "bg-status-new text-white" },
   PENDING_COUNTERMEASURE: { translationKey: "status.PENDING_COUNTERMEASURE", className: "bg-status-waitingTech text-white" },
+  PENDING_APPROVAL: { translationKey: "status.PENDING_APPROVAL", className: "bg-status-waitingTech text-white" },
   COMPLETED: { translationKey: "status.COMPLETED", className: "bg-status-completed text-white" },
 };
 

@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+﻿import { useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -29,7 +29,6 @@ export interface ClaimFormData {
   defectName: string;
   occurrenceDate: string;
   remarks: string;
-  assignee: string;
   files: File[];
 }
 
@@ -63,7 +62,6 @@ export default function NewClaimForm({ onSubmit, onCancel }: NewClaimFormProps) 
     defectName: '',
     occurrenceDate: '',
     remarks: '',
-    assignee: '',
     files: [],
   });
 
@@ -123,7 +121,7 @@ export default function NewClaimForm({ onSubmit, onCancel }: NewClaimFormProps) 
                 id="customer-defect-id"
                 value={formData.customerDefectId}
                 onChange={(e) => setFormData({ ...formData, customerDefectId: e.target.value })}
-                placeholder="例: DEF-2025-001"
+                placeholder="侁E DEF-2025-001"
                 data-testid="input-customer-defect-id"
               />
             </div>
@@ -158,7 +156,7 @@ export default function NewClaimForm({ onSubmit, onCancel }: NewClaimFormProps) 
                 id="part-number"
                 value={formData.partNumber}
                 onChange={(e) => setFormData({ ...formData, partNumber: e.target.value })}
-                placeholder="例: P-12345-A"
+                placeholder="侁E P-12345-A"
                 data-testid="input-part-number"
               />
             </div>
@@ -188,7 +186,7 @@ export default function NewClaimForm({ onSubmit, onCancel }: NewClaimFormProps) 
                 `}</style>
                 <button
                   type="button"
-                  aria-label="日付を選択"
+                  aria-label="Select date"
                   className="absolute right-2 top-1/2 -translate-y-1/2 text-foreground hover:text-foreground/80"
                   onClick={() => {
                     const el: any = occurrenceRef?.current;
@@ -204,19 +202,6 @@ export default function NewClaimForm({ onSubmit, onCancel }: NewClaimFormProps) 
                   <CalendarIcon className="h-5 w-5" />
                 </button>
               </div>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="assignee">
-                {t('newClaim.assignee')}
-              </Label>
-              <Input
-                id="assignee"
-                value={formData.assignee}
-                onChange={(e) => setFormData({ ...formData, assignee: e.target.value })}
-                placeholder="例: 営業部 山田"
-                data-testid="input-assignee"
-              />
             </div>
           </div>
 
@@ -240,7 +225,7 @@ export default function NewClaimForm({ onSubmit, onCancel }: NewClaimFormProps) 
                   <Input
                     value={item.dc}
                     onChange={(e) => updateDcItem(index, 'dc', e.target.value)}
-                    placeholder="例: DC-001"
+                    placeholder="侁E DC-001"
                     data-testid={`input-dc-${index}`}
                     required
                   />
@@ -278,7 +263,7 @@ export default function NewClaimForm({ onSubmit, onCancel }: NewClaimFormProps) 
               id="defect-name"
               value={formData.defectName}
               onChange={(e) => setFormData({ ...formData, defectName: e.target.value })}
-              placeholder="例: エンジンから異音が発生"
+              placeholder="Engine noise"
               required
               data-testid="input-defect-name"
             />
@@ -292,7 +277,7 @@ export default function NewClaimForm({ onSubmit, onCancel }: NewClaimFormProps) 
               id="remarks"
               value={formData.remarks}
               onChange={(e) => setFormData({ ...formData, remarks: e.target.value })}
-              placeholder="その他の詳細情報"
+              placeholder="そ�E他�E詳細惁E��"
               className="min-h-24"
               data-testid="input-remarks"
             />

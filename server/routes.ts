@@ -3,7 +3,7 @@ import fs from "fs";
 import path from "path";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { insertClaimSchema, updateClaimSchema } from "@shared/schema";
+import { insertClaimSchema, updateClaimSchema, type Claim } from "@shared/schema";
 import { z } from "zod";
 import multer from "multer";
 import { uploadFileToDriveInTcarFolder, ensureTcarFolder } from "./google-drive";
@@ -141,7 +141,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.patch('/api/claims/:id', async (req, res) => {
     try {
-      const validatedUpdates = updateClaimSchema.parse(req.body);
+      const validatedUpdates = updateClaimSchema.parse(req.body) as Partial<Claim>;
       const prev = await storage.getClaim(req.params.id);
       const claim = await storage.updateClaim(req.params.id, validatedUpdates);
       if (!claim) {
@@ -156,21 +156,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
               if (recipients.length > 0) {
                 void sendClaimAcceptedEmail(claim, recipients);
               }
-            } else if (claim.status === 'COMPLETED') {
-              const [technicalRecipients, counterRecipients] = await Promise.all([
-                getRecipientsForEvent('technicalApproved', claim),
-                getRecipientsForEvent('countermeasureSubmitted', claim),
-              ]);
-
-              if (counterRecipients.length > 0) {
-                void sendCountermeasureSubmittedEmail(claim, counterRecipients);
+            } else if (claim.status === 'PENDING_APPROVAL') {
+              const recipients = await getRecipientsForEvent('countermeasureSubmitted', claim);
+              if (recipients.length > 0) {
+                void sendCountermeasureSubmittedEmail(claim, recipients);
               }
-
-              const technicalOnly = technicalRecipients.filter(
-                (email) => !counterRecipients.includes(email),
-              );
-              if (technicalOnly.length > 0) {
-                void sendTechnicalApprovalEmail(claim, technicalOnly);
+            } else if (claim.status === 'COMPLETED') {
+              const recipients = await getRecipientsForEvent('technicalApproved', claim);
+              if (recipients.length > 0) {
+                void sendTechnicalApprovalEmail(claim, recipients);
               }
             }
           }
@@ -188,9 +182,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.delete('/api/claims/:id', async (req, res) => {
     try {
+      const claim = await storage.getClaim(req.params.id);
+      if (!claim) {
+        return res.status(404).json({ error: 'Claim not found' });
+      }
+      const userRole = (req.header("x-user-role") ?? "").trim();
+      const userName = (req.header("x-user-name") ?? "").trim();
+      const isAdmin = userRole === "admin";
+      const isOwner =
+        (!!claim.createdBy && claim.createdBy === userName) ||
+        (!claim.createdBy && !!claim.assignee && claim.assignee === userName);
+      if (!isAdmin && !isOwner) {
+        return res.status(403).json({ error: "Forbidden" });
+      }
+
       const success = await storage.deleteClaim(req.params.id);
       if (!success) {
-        return res.status(404).json({ error: 'Claim not found' });
+        return res.status(404).json({ error: "Claim not found" });
       }
       res.status(204).send();
     } catch (error) {
@@ -227,11 +235,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
         await fs.promises.writeFile(dest, req.file.buffer);
         result = { fileId: fileName, webViewLink: `/uploads/${encodeURIComponent(fileName)}` } as any;
       }
+      if (!result) {
+        throw new Error("Failed to store document");
+      }
 
+      const nextStatus = claim.status === "COMPLETED" ? claim.status : "PENDING_APPROVAL";
       const updatedClaim = await storage.updateClaim(req.params.id, {
-        driveFileId: result!.fileId,
-        driveFileUrl: result!.webViewLink,
+        driveFileId: result.fileId,
+        driveFileUrl: result.webViewLink,
+        status: nextStatus,
       });
+
+      if (nextStatus === "PENDING_APPROVAL") {
+        try {
+          const recipients = await getRecipientsForEvent('countermeasureSubmitted', updatedClaim as Claim);
+          if (isEmailConfigured() && recipients.length > 0) {
+            void sendCountermeasureSubmittedEmail(updatedClaim as Claim, recipients);
+          }
+        } catch {}
+      }
 
       res.json({
         fileId: result.fileId,
@@ -271,19 +293,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
         await fs.promises.writeFile(dest, req.file.buffer);
         result = { fileId: fileName, webViewLink: `/uploads/${encodeURIComponent(fileName)}` } as any;
       }
+      if (!result) {
+        throw new Error("Failed to store attachment");
+      }
 
       const attachment = {
-        fileId: result!.fileId,
-        fileUrl: result!.webViewLink,
+        fileId: result.fileId,
+        fileUrl: result.webViewLink,
         fileName: req.file.originalname,
         uploadedAt: new Date().toISOString(),
       };
-      const next = [...((claim as any).attachments ?? []), attachment];
-      const updatedClaim = await storage.updateClaim(req.params.id, { attachments: next } as any);
+      const next = [...(claim.attachments ?? []), attachment];
+      const updatedClaim = await storage.updateClaim(req.params.id, { attachments: next });
 
       res.json({
-        fileId: result!.fileId,
-        fileUrl: result!.webViewLink,
+        fileId: result.fileId,
+        fileUrl: result.webViewLink,
         attachment,
         claim: updatedClaim,
       });

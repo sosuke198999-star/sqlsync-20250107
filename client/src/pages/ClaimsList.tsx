@@ -32,7 +32,9 @@ export default function ClaimsList() {
     assignee: c.assignee || undefined,
   }));
 
-  const filteredClaims = allClaims.filter((claim) => {
+  const visibleClaims = allClaims.filter((claim) => claim.status !== "COMPLETED");
+
+  const filteredClaims = visibleClaims.filter((claim) => {
     const q = searchQuery.toLowerCase();
     const matchesSearch =
       (claim.tcarNo || '').toLowerCase().includes(q) ||
@@ -78,6 +80,8 @@ export default function ClaimsList() {
               setLocation(`/claims/acceptance/${id}`);
             } else if (claim.status === 'PENDING_COUNTERMEASURE') {
               setLocation(`/claims/countermeasure/${id}`);
+            } else if (claim.status === 'PENDING_APPROVAL') {
+              setLocation(`/approvals/${id}`);
             } else {
               setLocation(`/claims/${id}`);
             }

@@ -14,6 +14,7 @@ const resources = {
       "nav.settings": "設定",
       "nav.countermeasureRegister": "対策書登録",
       "nav.techApproval": "承認",
+      "nav.completed": "完了一覧",
       "nav.notificationSettings": "通知設定",
       "nav.userManagement": "ユーザー管理",
 
@@ -32,6 +33,11 @@ const resources = {
       "claims.title": "クレーム一覧",
       "claims.newClaim": "新規登録",
       "claims.noResults": "クレームが見つかりませんでした",
+      "completed.title": "完了一覧",
+      "completed.subtitle": "完了したクレーム ({{count}}件)",
+      "completed.year": "年",
+      "completed.allYears": "すべて",
+      "completed.unknownYear": "不明",
 
       // Table
       "table.tcarNo": "TCAR番号",
@@ -85,7 +91,8 @@ const resources = {
 
       // Status
       "status.PENDING_ACCEPTANCE": "受付前",
-      "status.PENDING_COUNTERMEASURE": "承認待ち",
+      "status.PENDING_COUNTERMEASURE": "対策書登録前",
+      "status.PENDING_APPROVAL": "承認前",
       "status.COMPLETED": "完了",
 
       // Status actions
@@ -102,19 +109,23 @@ const resources = {
 
       // Acceptance
       "acceptance.title": "クレーム受付",
-      "acceptance.subtitle": "クレームを受け付けて担当者を割り当てます",
+      "acceptance.subtitle": "クレームを受け付けて工場担当グループを割り当てます",
+      "acceptance.loading": "読み込み中...",
+      "acceptance.notFound": "クレームが見つかりません",
       "acceptance.claimInfo": "クレーム情報",
-      "acceptance.assignSection": "担当者割り当て",
+      "acceptance.assignSection": "工場担当グループ割り当て",
       "acceptance.techAssignee": "技術担当者",
-      "acceptance.factoryAssignee": "工場担当者",
+      "acceptance.factoryAssignee": "工場担当グループ",
       "acceptance.selectTech": "技術担当者を選択",
-      "acceptance.selectFactory": "工場担当者を選択",
+      "acceptance.selectFactory": "工場担当グループを選択",
       "acceptance.accept": "受付する",
       "acceptance.acceptSuccess": "クレームを受け付けました",
       "acceptance.noAssigneesTitle": "担当者を設定してください",
-      "acceptance.noAssigneesDesc": "通知設定で技術・工場担当者を登録してください。",
+      "acceptance.noAssigneesDesc": "通知設定で工場担当グループを登録してください。",
       "acceptance.noTechAssignees": "技術担当者が登録されていません",
-      "acceptance.noFactoryAssignees": "工場担当者グループが登録されていません",
+      "acceptance.noFactoryAssignees": "工場担当グループが登録されていません",
+      "acceptance.factoryRequiredTitle": "エラー",
+      "acceptance.factoryRequiredDesc": "工場担当グループを選択してください",
       "acceptance.assigneeSettingsHint": "通知設定で担当者を登録してください。",
   "acceptance.listTitle": "受付",
       "acceptance.listSubtitle": "受付待ちのクレーム",
@@ -284,6 +295,7 @@ const resources = {
       "nav.settings": "Settings",
       "nav.countermeasureRegister": "Countermeasure Upload",
       "nav.techApproval": "Technical Approval",
+      "nav.completed": "Completed Claims",
       "nav.notificationSettings": "Notifications",
       "nav.userManagement": "User Management",
 
@@ -302,6 +314,11 @@ const resources = {
       "claims.title": "Claims List",
       "claims.newClaim": "New Claim",
       "claims.noResults": "No claims found",
+      "completed.title": "Completed Claims",
+      "completed.subtitle": "Completed claims ({{count}})",
+      "completed.year": "Year",
+      "completed.allYears": "All",
+      "completed.unknownYear": "Unknown",
 
       // Table
       "table.tcarNo": "TCAR No.",
@@ -355,7 +372,8 @@ const resources = {
 
       // Status
       "status.PENDING_ACCEPTANCE": "Pending Acceptance",
-      "status.PENDING_COUNTERMEASURE": "Pending Countermeasure",
+      "status.PENDING_COUNTERMEASURE": "Countermeasure Registration Pending",
+      "status.PENDING_APPROVAL": "Pending Approval",
       "status.COMPLETED": "Completed",
 
       // Status actions
@@ -372,19 +390,23 @@ const resources = {
 
       // Acceptance
       "acceptance.title": "Claim Acceptance",
-      "acceptance.subtitle": "Accept claim and assign team members",
+      "acceptance.subtitle": "Accept claim and assign a factory group",
+      "acceptance.loading": "Loading...",
+      "acceptance.notFound": "Claim not found",
       "acceptance.claimInfo": "Claim Information",
-      "acceptance.assignSection": "Assign Team",
+      "acceptance.assignSection": "Assign Factory Group",
       "acceptance.techAssignee": "Tech Assignee",
-      "acceptance.factoryAssignee": "Factory Assignee",
+      "acceptance.factoryAssignee": "Factory Group",
       "acceptance.selectTech": "Select tech assignee",
-      "acceptance.selectFactory": "Select factory assignee",
+      "acceptance.selectFactory": "Select factory group",
       "acceptance.accept": "Accept Claim",
       "acceptance.acceptSuccess": "Claim accepted successfully",
       "acceptance.noAssigneesTitle": "Add assignees in Notifications",
-      "acceptance.noAssigneesDesc": "Register technical and factory assignees from the Notifications page before accepting.",
+      "acceptance.noAssigneesDesc": "Register factory assignee groups from the Notifications page before accepting.",
       "acceptance.noTechAssignees": "No technical assignees available",
       "acceptance.noFactoryAssignees": "No factory assignee groups available",
+      "acceptance.factoryRequiredTitle": "Error",
+      "acceptance.factoryRequiredDesc": "Select a factory group.",
       "acceptance.assigneeSettingsHint": "Open Notifications to register assignees.",
       "acceptance.listTitle": "Pending Acceptance",
       "acceptance.listSubtitle": "Claims awaiting acceptance",
@@ -553,6 +575,7 @@ const resources = {
       "nav.settings": "การตั้งค่า",
       "nav.countermeasureRegister": "ลงทะเบียนมาตรการ",
       "nav.techApproval": "การอนุมัติทางเทคนิค",
+      "nav.completed": "รายการที่เสร็จสิ้น",
       "nav.notificationSettings": "การแจ้งเตือนและเวิร์กโฟลว์",
       "nav.userManagement": "การจัดการผู้ใช้",
 
@@ -571,6 +594,11 @@ const resources = {
       "claims.title": "รายการเคลม",
       "claims.newClaim": "ลงทะเบียนเคลมใหม่",
       "claims.noResults": "ไม่พบเคลม",
+      "completed.title": "รายการที่เสร็จสิ้น",
+      "completed.subtitle": "เคลมที่เสร็จสิ้น ({{count}})",
+      "completed.year": "ปี",
+      "completed.allYears": "ทั้งหมด",
+      "completed.unknownYear": "ไม่ทราบ",
 
       // Table
       "table.tcarNo": "หมายเลข TCAR",
@@ -625,6 +653,7 @@ const resources = {
       // Status
       "status.PENDING_ACCEPTANCE": "รอการรับเรื่อง",
       "status.PENDING_COUNTERMEASURE": "รอลงทะเบียนมาตรการ",
+      "status.PENDING_APPROVAL": "รอการอนุมัติ",
       "status.COMPLETED": "เสร็จสิ้น",
 
       // Status actions
@@ -641,19 +670,23 @@ const resources = {
 
       // Acceptance
       "acceptance.title": "รับเรื่องเคลม",
-      "acceptance.subtitle": "รับเรื่องเคลมและมอบหมายทีม",
+      "acceptance.subtitle": "รับเรื่องเคลมและมอบหมายกลุ่มโรงงาน",
+      "acceptance.loading": "กำลังโหลด...",
+      "acceptance.notFound": "ไม่พบเคลม",
       "acceptance.claimInfo": "ข้อมูลเคลม",
-      "acceptance.assignSection": "มอบหมายทีม",
+      "acceptance.assignSection": "มอบหมายกลุ่มโรงงาน",
       "acceptance.techAssignee": "ผู้รับผิดชอบฝ่ายเทคนิค",
-      "acceptance.factoryAssignee": "ผู้รับผิดชอบโรงงาน",
+      "acceptance.factoryAssignee": "กลุ่มโรงงาน",
       "acceptance.selectTech": "เลือกผู้รับผิดชอบฝ่ายเทคนิค",
-      "acceptance.selectFactory": "เลือกผู้รับผิดชอบโรงงาน",
+      "acceptance.selectFactory": "เลือกกลุ่มโรงงาน",
       "acceptance.accept": "รับเรื่อง",
       "acceptance.acceptSuccess": "รับเรื่องเคลมเรียบร้อย",
       "acceptance.noAssigneesTitle": "โปรดตั้งค่าผู้รับผิดชอบ",
-      "acceptance.noAssigneesDesc": "ลงทะเบียนผู้รับผิดชอบฝ่ายเทคนิคและโรงงานจากหน้าการแจ้งเตือนก่อนรับเรื่อง",
+      "acceptance.noAssigneesDesc": "ลงทะเบียนกลุ่มฝ่ายโรงงานจากหน้าการแจ้งเตือนก่อนรับเรื่อง",
       "acceptance.noTechAssignees": "ยังไม่มีผู้รับผิดชอบฝ่ายเทคนิค",
       "acceptance.noFactoryAssignees": "ยังไม่มีกลุ่มผู้รับผิดชอบฝ่ายโรงงาน",
+      "acceptance.factoryRequiredTitle": "ข้อผิดพลาด",
+      "acceptance.factoryRequiredDesc": "โปรดเลือกกลุ่มโรงงาน",
       "acceptance.assigneeSettingsHint": "ไปที่หน้าการแจ้งเตือนเพื่อเพิ่มผู้รับผิดชอบ",
       "acceptance.listTitle": "รอการรับเรื่อง",
       "acceptance.listSubtitle": "เคลมที่รอการรับเรื่อง",

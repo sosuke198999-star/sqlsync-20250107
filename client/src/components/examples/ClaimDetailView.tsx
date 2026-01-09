@@ -10,7 +10,7 @@ const mockClaim: ClaimDetail = {
   defectName: 'エンジンから異音が発生しています。',
   defectCount: 3,
   occurrenceDate: '2025-01-05',
-  status: 'TECH_REVIEW',
+  status: 'PENDING_COUNTERMEASURE',
   receivedDate: '2025-01-10',
   dueDate: '2025-01-20',
   remarks: '特にアイドリング時に顕著で、回転数が800rpm付近で「カタカタ」という金属音が聞こえます。',

@@ -16,6 +16,7 @@ import ClaimCountermeasure from "@/pages/ClaimCountermeasure";
 import CountermeasureList from "@/pages/CountermeasureList";
 import TechnicalApprovalList from "@/pages/TechnicalApprovalList";
 import TechnicalApproval from "@/pages/TechnicalApproval";
+import CompletedList from "@/pages/CompletedList";
 import Settings from "@/pages/Settings";
 import NotificationSettings from "@/pages/NotificationSettings";
 import NotFound from "@/pages/not-found";
@@ -39,6 +40,7 @@ function Router() {
       <Route path="/countermeasures" component={CountermeasureList} />
       <Route path="/approvals" component={TechnicalApprovalList} />
       <Route path="/approvals/:id" component={TechnicalApproval} />
+      <Route path="/completed" component={CompletedList} />
       <Route path="/claims/:id" component={ClaimDetail} />
       <Route path="/settings" component={Settings} />
       <Route path="/notifications" component={NotificationSettings} />

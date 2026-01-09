@@ -10,7 +10,7 @@ import {
   SidebarHeader,
   SidebarFooter,
 } from "@/components/ui/sidebar";
-import { Home, FileText, Plus, BarChart3, Settings, Bell, Users, LogOut } from "lucide-react";
+import { Home, FileText, Plus, BarChart3, Settings, Bell, Users, LogOut, CheckCircle } from "lucide-react";
 import { Link, useLocation } from "wouter";
 import DarkModeToggle from "./DarkModeToggle";
 import LanguageToggle from "./LanguageToggle";
@@ -59,6 +59,11 @@ export default function AppSidebar() {
       title: t("nav.techApproval"),
       url: "/approvals",
       icon: Plus,
+    },
+    {
+      title: t("nav.completed"),
+      url: "/completed",
+      icon: CheckCircle,
     },
   ];
 

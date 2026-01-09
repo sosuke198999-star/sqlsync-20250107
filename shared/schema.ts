@@ -59,14 +59,20 @@ export const insertClaimSchema = createInsertSchema(claims)
   });
 
 export const updateClaimSchema = insertClaimSchema.partial().extend({
-  status: z.enum(['PENDING_ACCEPTANCE', 'PENDING_COUNTERMEASURE', 'COMPLETED']).optional(),
+  status: z
+    .enum(['PENDING_ACCEPTANCE', 'PENDING_COUNTERMEASURE', 'PENDING_APPROVAL', 'COMPLETED'])
+    .optional(),
 });
 
 export type InsertClaim = z.infer<typeof insertClaimSchema>;
 export type UpdateClaim = z.infer<typeof updateClaimSchema>;
 export type Claim = typeof claims.$inferSelect;
 
-export type ClaimStatus = 'PENDING_ACCEPTANCE' | 'PENDING_COUNTERMEASURE' | 'COMPLETED';
+export type ClaimStatus =
+  | 'PENDING_ACCEPTANCE'
+  | 'PENDING_COUNTERMEASURE'
+  | 'PENDING_APPROVAL'
+  | 'COMPLETED';
 
 export const users = pgTable("users", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),

@@ -3,6 +3,17 @@ import { useParams, useLocation, Link } from "wouter";
 import { useTranslation } from "react-i18next";
 import { ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -11,6 +22,7 @@ import StatusBadge from "@/components/StatusBadge";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import type { Claim } from "@shared/schema";
+import { useAuth } from "@/lib/auth";
 type GroupPerson = { name: string; email: string };
 type NotificationGroup = {
   id: string;
@@ -26,8 +38,8 @@ export default function ClaimAcceptance() {
   const { t } = useTranslation();
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const { user } = useAuth();
 
-  const [techAssignee, setTechAssignee] = useState("");
   const [factoryAssignee, setFactoryAssignee] = useState("");
   const [groups, setGroups] = useState<NotificationGroup[]>(() => {
     try {
@@ -53,27 +65,10 @@ export default function ClaimAcceptance() {
     })();
   }, []);
 
-  const getDepartmentGroup = (department: string) =>
-    groups.find((group) => group.department === department);
-
-  const techGroup = useMemo(
-    () => getDepartmentGroup("technical"),
+  const factoryGroupOptions = useMemo(
+    () => groups.filter((group) => group.department === "factory"),
     [groups]
   );
-  const factoryGroup = useMemo(
-    () => getDepartmentGroup("factory"),
-    [groups]
-  );
-
-  const techAssigneeOptions = useMemo(
-    () => (techGroup ? [...techGroup.members, ...techGroup.managers] : []),
-    [techGroup]
-  );
-  const factoryAssigneeOptions = useMemo(
-    () => (factoryGroup ? [...factoryGroup.members, ...factoryGroup.managers] : []),
-    [factoryGroup]
-  );
-
   const { data: claim, isLoading, isError } = useQuery<Claim>({
     queryKey: [`/api/claims/${id}`],
     enabled: !!id,
@@ -83,7 +78,6 @@ export default function ClaimAcceptance() {
   const acceptMutation = useMutation({
     mutationFn: async () => {
       await apiRequest('PATCH', `/api/claims/${id}`, {
-        assigneeTech: techAssignee,
         assigneeFactory: factoryAssignee,
         status: 'PENDING_COUNTERMEASURE',
       });
@@ -98,22 +92,55 @@ export default function ClaimAcceptance() {
     },
   });
 
+  const deleteMutation = useMutation({
+    mutationFn: async () => {
+      await apiRequest("DELETE", `/api/claims/${id}`, undefined, {
+        headers: {
+          "x-user-name": user?.name ?? "",
+          "x-user-role": user?.role ?? "",
+        },
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/claims"] });
+      toast({
+        title: t("detail.deleteSuccessTitle"),
+        description: t("detail.deleteSuccessDesc"),
+      });
+      setLocation("/claims");
+    },
+    onError: (error: unknown) => {
+      const message = error instanceof Error ? error.message : String(error);
+      toast({
+        title: t("detail.deleteFailedTitle"),
+        description: message,
+        variant: "destructive",
+      });
+    },
+  });
+
   if (!id) {
     setLocation('/claims');
     return null;
   }
 
   if (isLoading) {
-    return <div className="flex items-center justify-center h-96">読み込み中...</div>;
+    return <div className="flex items-center justify-center h-96">{t('acceptance.loading')}</div>;
   }
 
   if (isError || !claim) {
-    return <div className="flex items-center justify-center h-96">クレームが見つかりません</div>;
+    return <div className="flex items-center justify-center h-96">{t('acceptance.notFound')}</div>;
   }
+
+  const canDelete =
+    !!user &&
+    (user.role === "admin" ||
+      (claim.createdBy && user.name === claim.createdBy) ||
+      (!claim.createdBy && claim.assignee && user.name === claim.assignee));
 
   const handleAccept = () => {
     if (!id) return;
-    if (techAssigneeOptions.length === 0 || factoryAssigneeOptions.length === 0) {
+    if (factoryGroupOptions.length === 0) {
       toast({
         title: t('acceptance.noAssigneesTitle'),
         description: t('acceptance.noAssigneesDesc'),
@@ -121,10 +148,10 @@ export default function ClaimAcceptance() {
       });
       return;
     }
-    if (!techAssignee || !factoryAssignee) {
+    if (!factoryAssignee) {
       toast({
-        title: "エラー",
-        description: "担当者を選択してください",
+        title: t("acceptance.factoryRequiredTitle"),
+        description: t("acceptance.factoryRequiredDesc"),
         variant: "destructive",
       });
       return;
@@ -134,19 +161,59 @@ export default function ClaimAcceptance() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center gap-4">
-        <Link href="/claims">
-          <Button variant="ghost" size="icon" data-testid="button-back">
-            <ArrowLeft className="h-5 w-5" />
-          </Button>
-        </Link>
-        <div className="flex-1">
-          <h1 className="text-3xl font-bold mb-2" data-testid="text-page-title">
-            {t('acceptance.title')}
-          </h1>
-          <p className="text-muted-foreground">{t('acceptance.subtitle')}</p>
+      <div className="flex flex-wrap items-start justify-between gap-4">
+        <div className="flex items-center gap-4">
+          <Link href="/claims">
+            <Button variant="ghost" size="icon" data-testid="button-back">
+              <ArrowLeft className="h-5 w-5" />
+            </Button>
+          </Link>
+          <div>
+            <h1 className="text-3xl font-bold mb-2" data-testid="text-page-title">
+              {t('acceptance.title')}
+            </h1>
+            <p className="text-muted-foreground">{t('acceptance.subtitle')}</p>
+          </div>
         </div>
-        <StatusBadge status={claim.status as any} />
+        <div className="flex items-center gap-3">
+          <StatusBadge status={claim.status as any} />
+          {canDelete && (
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button
+                  variant="destructive"
+                  data-testid="button-delete-claim"
+                  disabled={deleteMutation.isPending}
+                >
+                  {t("detail.delete")}
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>{t("detail.deleteConfirmTitle")}</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    {t("detail.deleteConfirmDesc")}
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel data-testid="button-delete-cancel">
+                    {t("newClaim.cancel")}
+                  </AlertDialogCancel>
+                  <AlertDialogAction asChild>
+                    <Button
+                      variant="destructive"
+                      data-testid="button-delete-confirm"
+                      onClick={() => deleteMutation.mutate()}
+                      disabled={deleteMutation.isPending}
+                    >
+                      {t("detail.deleteConfirmAction")}
+                    </Button>
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+          )}
+        </div>
       </div>
 
       <Card>
@@ -201,70 +268,30 @@ export default function ClaimAcceptance() {
         </CardHeader>
         <CardContent className="space-y-4">
           <div>
-            <Label htmlFor="tech-assignee">{t('acceptance.techAssignee')}</Label>
-            <Select
-              value={techAssignee}
-              onValueChange={setTechAssignee}
-              disabled={techAssigneeOptions.length === 0}
-            >
-              <SelectTrigger id="tech-assignee" data-testid="select-tech-assignee">
-                <SelectValue placeholder={t('acceptance.selectTech')} />
-              </SelectTrigger>
-              <SelectContent>
-                {techAssigneeOptions.length === 0 ? (
-                  <SelectItem value="__no-tech" disabled>
-                    {t('acceptance.noTechAssignees')}
-                  </SelectItem>
-                ) : (
-                  techAssigneeOptions.map((person) => (
-                    <SelectItem key={person.name} value={person.name}>
-                      <div className="flex flex-col">
-                        <span>{person.name}</span>
-                        {person.email && (
-                          <span className="text-xs text-muted-foreground">{person.email}</span>
-                        )}
-                      </div>
-                    </SelectItem>
-                  ))
-                )}
-              </SelectContent>
-            </Select>
-            {techAssigneeOptions.length === 0 && (
-              <p className="mt-2 text-sm text-muted-foreground">
-                {t('acceptance.assigneeSettingsHint')}
-              </p>
-            )}
-          </div>
-          <div>
             <Label htmlFor="factory-assignee">{t('acceptance.factoryAssignee')}</Label>
             <Select
               value={factoryAssignee}
               onValueChange={setFactoryAssignee}
-              disabled={factoryAssigneeOptions.length === 0}
+              disabled={factoryGroupOptions.length === 0}
             >
               <SelectTrigger id="factory-assignee" data-testid="select-factory-assignee">
                 <SelectValue placeholder={t('acceptance.selectFactory')} />
               </SelectTrigger>
               <SelectContent>
-                {factoryAssigneeOptions.length === 0 ? (
+                {factoryGroupOptions.length === 0 ? (
                   <SelectItem value="__no-factory" disabled>
                     {t('acceptance.noFactoryAssignees')}
                   </SelectItem>
                 ) : (
-                  factoryAssigneeOptions.map((person) => (
-                    <SelectItem key={person.name} value={person.name}>
-                      <div className="flex flex-col">
-                        <span>{person.name}</span>
-                        {person.email && (
-                          <span className="text-xs text-muted-foreground">{person.email}</span>
-                        )}
-                      </div>
+                  factoryGroupOptions.map((group) => (
+                    <SelectItem key={group.id} value={group.name}>
+                      {group.name}
                     </SelectItem>
                   ))
                 )}
               </SelectContent>
             </Select>
-            {factoryAssigneeOptions.length === 0 && (
+            {factoryGroupOptions.length === 0 && (
               <p className="mt-2 text-sm text-muted-foreground">
                 {t('acceptance.assigneeSettingsHint')}
               </p>
@@ -281,7 +308,7 @@ export default function ClaimAcceptance() {
         </Link>
         <Button
           onClick={handleAccept}
-          disabled={acceptMutation.isPending || !techAssignee || !factoryAssignee}
+          disabled={acceptMutation.isPending || !factoryAssignee}
           data-testid="button-accept"
         >
           {t('acceptance.accept')}
