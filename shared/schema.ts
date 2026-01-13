@@ -23,6 +23,7 @@ export const claims = pgTable("claims", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   tcarNo: text("tcar_no").notNull().unique(),
   customerDefectId: text("customer_defect_id"),
+  defectCode: text("defect_code"),
   customerName: text("customer_name").notNull(),
   partNumber: text("part_number"),
   dcItems: jsonb("dc_items").$type<DcItem[]>().notNull().default(sql`'[]'::jsonb`),

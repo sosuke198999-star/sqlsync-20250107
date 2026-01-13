@@ -24,14 +24,16 @@ export default function TechnicalApproval() {
     enabled: !!id,
   });
 
-  const [defectName, setDefectName] = useState("");
-  const [defectCount, setDefectCount] = useState<number | undefined>(undefined);
+  const [defectCode, setDefectCode] = useState("");
+  const [correctiveAction, setCorrectiveAction] = useState("");
+  const [preventiveAction, setPreventiveAction] = useState("");
   const [remarks, setRemarks] = useState("");
 
   useEffect(() => {
     if (claim) {
-      setDefectName(claim.defectName || "");
-      setDefectCount(claim.defectCount ?? undefined);
+      setDefectCode((claim as any).defectCode || "");
+      setCorrectiveAction(claim.correctiveAction || "");
+      setPreventiveAction(claim.preventiveAction || "");
       setRemarks(claim.remarks || "");
     }
   }, [claim]);
@@ -40,8 +42,9 @@ export default function TechnicalApproval() {
     mutationFn: async () => {
       if (!id) return;
       await apiRequest("PATCH", `/api/claims/${id}`, {
-        defectName,
-        defectCount,
+        defectCode: defectCode || undefined,
+        correctiveAction: correctiveAction || undefined,
+        preventiveAction: preventiveAction || undefined,
         remarks,
       });
     },
@@ -110,16 +113,25 @@ export default function TechnicalApproval() {
           </div>
 
           <div>
-            <Label htmlFor="defect-name">{t('table.defectName')}</Label>
-            <Input id="defect-name" value={defectName} onChange={(e) => setDefectName(e.target.value)} />
+            <Label htmlFor="defect-code">{t('table.defectCode')}</Label>
+            <Input id="defect-code" value={defectCode} onChange={(e) => setDefectCode(e.target.value)} />
           </div>
           <div>
-            <Label htmlFor="defect-count">{t('table.defectCount')}</Label>
-            <Input
-              id="defect-count"
-              type="number"
-              value={defectCount ?? ''}
-              onChange={(e) => setDefectCount(e.target.value === '' ? undefined : Number(e.target.value))}
+            <Label htmlFor="corrective-action">{t('detail.correctiveAction')}</Label>
+            <Textarea
+              id="corrective-action"
+              value={correctiveAction}
+              onChange={(e) => setCorrectiveAction(e.target.value)}
+              className="min-h-24"
+            />
+          </div>
+          <div>
+            <Label htmlFor="preventive-action">{t('detail.preventiveAction')}</Label>
+            <Textarea
+              id="preventive-action"
+              value={preventiveAction}
+              onChange={(e) => setPreventiveAction(e.target.value)}
+              className="min-h-24"
             />
           </div>
           <div>

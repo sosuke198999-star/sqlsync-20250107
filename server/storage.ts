@@ -72,6 +72,7 @@ export class MemStorage implements IStorage {
       id,
       tcarNo,
       customerDefectId: insertClaim.customerDefectId ?? null,
+      defectCode: (insertClaim as any).defectCode ?? null,
       customerName: insertClaim.customerName,
       partNumber: insertClaim.partNumber ?? null,
       dcItems: insertClaim.dcItems,
@@ -151,6 +152,7 @@ class SupabaseRestStorage implements IStorage {
       id: c.id,
       tcarNo: c.tcarNo ?? c.tcar_no,
       customerDefectId: c.customerDefectId ?? c.customer_defect_id ?? null,
+      defectCode: c.defectCode ?? c.defect_code ?? null,
       customerName: c.customerName ?? c.customer_name,
       partNumber: c.partNumber ?? c.part_number ?? null,
       dcItems: c.dcItems ?? c.dc_items ?? [],
@@ -178,6 +180,7 @@ class SupabaseRestStorage implements IStorage {
   private toSnakeCasePayload(insertClaim: InsertClaim, tcarNo?: string): Record<string, any> {
     const payload: Record<string, any> = {
       customer_defect_id: insertClaim.customerDefectId ?? null,
+      defect_code: (insertClaim as any).defectCode ?? null,
       customer_name: insertClaim.customerName,
       part_number: insertClaim.partNumber ?? null,
       dc_items: insertClaim.dcItems,
@@ -261,6 +264,7 @@ class SupabaseRestStorage implements IStorage {
     const snake: Record<string, any> = {
       // keep id/tcar_no immutable; server enforces it
       customer_defect_id: updates.customerDefectId,
+      defect_code: (updates as any).defectCode,
       customer_name: updates.customerName,
       part_number: updates.partNumber,
       dc_items: updates.dcItems,

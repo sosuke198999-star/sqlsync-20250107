@@ -8,6 +8,11 @@ import { Readable } from 'stream';
 
 let connectionSettings: any;
 
+export function getTcarFolderName(tcarNo: string) {
+  const prefix = process.env.GOOGLE_DRIVE_FOLDER_NAME_PREFIX ?? '';
+  return `${prefix}${tcarNo}`;
+}
+
 async function getDriveClient() {
   // Prefer inline JSON; fallback to file path if provided
   const saJson = process.env.GOOGLE_SERVICE_ACCOUNT_JSON;
@@ -109,8 +114,7 @@ async function findOrCreateFolder(drive: any, name: string, parentId?: string) {
 export async function ensureTcarFolder(tcarNo: string): Promise<string> {
   const drive = await getDriveClient();
   const parent = process.env.GOOGLE_DRIVE_PARENT_FOLDER_ID;
-  const prefix = process.env.GOOGLE_DRIVE_FOLDER_NAME_PREFIX ?? 'TCAR-';
-  const folderName = `${prefix}${tcarNo}`;
+  const folderName = getTcarFolderName(tcarNo);
   const folderId = await findOrCreateFolder(drive, folderName, parent);
   return folderId;
 }
@@ -174,8 +178,7 @@ export async function uploadFileToDriveInTcarFolder(
 ): Promise<{ fileId: string; webViewLink: string; folderId: string }> {
   const drive = await getDriveClient();
   const parent = process.env.GOOGLE_DRIVE_PARENT_FOLDER_ID;
-  const prefix = process.env.GOOGLE_DRIVE_FOLDER_NAME_PREFIX ?? 'TCAR-';
-  const folderName = `${prefix}${tcarNo}`;
+  const folderName = getTcarFolderName(tcarNo);
 
   const folderId = await findOrCreateFolder(drive, folderName, parent);
 

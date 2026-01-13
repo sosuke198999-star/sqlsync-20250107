@@ -12,6 +12,7 @@ export interface ClaimDetail {
   id: string;
   tcarNo: string;
   customerDefectId?: string;
+  defectCode?: string;
   customerName: string;
   partNumber?: string;
   dc?: string;
@@ -54,11 +55,18 @@ export default function ClaimDetailView({ claim, onUpdateStatus, onSaveActions }
             <CardTitle className="text-2xl font-bold" data-testid="text-tcar-no">
               {claim.tcarNo}
             </CardTitle>
-            {claim.customerDefectId && (
-              <div className="text-sm text-muted-foreground">
-                {t('table.customerDefectId')}: {claim.customerDefectId}
-              </div>
-            )}
+            <div className="space-y-1 text-sm text-muted-foreground">
+              {claim.customerDefectId && (
+                <div>
+                  {t('table.customerDefectId')}: {claim.customerDefectId}
+                </div>
+              )}
+              {claim.defectCode && (
+                <div>
+                  {t('table.defectCode')}: {claim.defectCode}
+                </div>
+              )}
+            </div>
             <div className="flex items-center gap-3">
               <StatusBadge status={claim.status} />
             </div>

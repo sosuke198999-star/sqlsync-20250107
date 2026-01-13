@@ -264,6 +264,32 @@ export default function ClaimAcceptance() {
 
       <Card>
         <CardHeader>
+          <CardTitle>{t('newClaim.attachments')}</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-2">
+          {claim.attachments && claim.attachments.length > 0 ? (
+            <ul className="space-y-2">
+              {claim.attachments.map((attachment, index) => (
+                <li key={`${attachment.fileId}-${index}`} className="text-sm">
+                  <a
+                    href={attachment.fileUrl}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="text-primary underline"
+                  >
+                    {attachment.fileName || attachment.fileId}
+                  </a>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p className="text-sm text-muted-foreground">-</p>
+          )}
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
           <CardTitle>{t('acceptance.assignSection')}</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">

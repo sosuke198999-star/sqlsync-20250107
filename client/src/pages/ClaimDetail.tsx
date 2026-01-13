@@ -37,6 +37,7 @@ function toClaimDetail(claim: Claim): ClaimDetail {
     id: claim.id,
     tcarNo: claim.tcarNo,
     customerDefectId: claim.customerDefectId ?? undefined,
+    defectCode: (claim as any).defectCode ?? undefined,
     customerName: claim.customerName,
     partNumber: claim.partNumber ?? undefined,
     dc: firstDc,

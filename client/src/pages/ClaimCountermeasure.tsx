@@ -42,9 +42,11 @@ export default function ClaimCountermeasure() {
 
   const submitMutation = useMutation({
     mutationFn: async () => {
-      await apiRequest('PATCH', `/api/claims/${id}`, {
-        remarks: comment,
-      });
+      const payload: Partial<Claim> = {};
+      if (comment) {
+        payload.remarks = comment;
+      }
+      await apiRequest('PATCH', `/api/claims/${id}`, payload);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/claims'] });
@@ -135,10 +137,10 @@ export default function ClaimCountermeasure() {
 
   const handleSubmit = () => {
     if (!id) return;
-    if (!comment) {
+    if (!comment && !claim.driveFileUrl) {
       toast({
         title: "エラー",
-        description: "コメントを入力してください",
+        description: "ファイルをアップロードするか、コメントを入力してください",
         variant: "destructive",
       });
       return;
@@ -311,7 +313,7 @@ export default function ClaimCountermeasure() {
         </Link>
         <Button
           onClick={handleSubmit}
-          disabled={submitMutation.isPending || !comment}
+          disabled={submitMutation.isPending || (!comment && !claim.driveFileUrl)}
           data-testid="button-submit"
         >
           {submitMutation.isPending ? '登録中...' : t('countermeasure.submit')}

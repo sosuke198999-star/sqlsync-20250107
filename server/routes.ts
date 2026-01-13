@@ -2,11 +2,12 @@ import express, { type Express } from "express";
 import fs from "fs";
 import path from "path";
 import { createServer, type Server } from "http";
+import { execSync } from "child_process";
 import { storage } from "./storage";
 import { insertClaimSchema, updateClaimSchema, type Claim } from "@shared/schema";
 import { z } from "zod";
 import multer from "multer";
-import { uploadFileToDriveInTcarFolder, ensureTcarFolder } from "./google-drive";
+import { uploadFileToDriveInTcarFolder, ensureTcarFolder, getTcarFolderName } from "./google-drive";
 import {
   sendClaimCreatedEmail,
   sendClaimAcceptedEmail,
@@ -20,25 +21,39 @@ import { startOverdueNotifier } from "./overdue-notifier";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   const pkgPath = path.resolve(import.meta.dirname, "..", "package.json");
+  const repoRoot = path.resolve(import.meta.dirname, "..");
+  const readGitCommit = () => {
+    if (process.env.GIT_COMMIT) return process.env.GIT_COMMIT;
+    try {
+      const output = execSync("git rev-parse --short HEAD", {
+        cwd: repoRoot,
+        stdio: ["ignore", "pipe", "ignore"],
+      });
+      return output.toString().trim() || null;
+    } catch {
+      return null;
+    }
+  };
   const readVersionInfo = () => {
     let appName = "rest-express";
     let appVersion = "unknown";
+    let commit = readGitCommit();
     try {
       const pkg = JSON.parse(fs.readFileSync(pkgPath, "utf-8"));
       appName = pkg?.name ?? appName;
       appVersion = pkg?.version ?? appVersion;
     } catch {}
-    return { appName, appVersion };
+    return { appName, appVersion, commit };
   };
 
   app.get('/api/version', (_req, res) => {
-    const { appName, appVersion } = readVersionInfo();
+    const { appName, appVersion, commit } = readVersionInfo();
     res.set("Cache-Control", "no-store, no-cache, must-revalidate, proxy-revalidate");
     res.json({
       name: appName,
       version: appVersion,
       env: app.get('env'),
-      commit: process.env.GIT_COMMIT || null,
+      commit: commit || null,
     });
   });
 
@@ -229,7 +244,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         );
       } catch (e) {
         // Fallback to local storage when Google Drive is not configured
-        const safePrefix = (process.env.GOOGLE_DRIVE_FOLDER_NAME_PREFIX ?? 'TCAR-') + claim.tcarNo;
+        const safePrefix = getTcarFolderName(claim.tcarNo);
         const fileName = `${safePrefix}-${req.file.originalname}`;
         const dest = path.join(localUploadsDir, fileName);
         await fs.promises.writeFile(dest, req.file.buffer);
@@ -287,7 +302,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           req.file.buffer
         );
       } catch (e) {
-        const safePrefix = (process.env.GOOGLE_DRIVE_FOLDER_NAME_PREFIX ?? 'TCAR-') + claim.tcarNo;
+        const safePrefix = getTcarFolderName(claim.tcarNo);
         const fileName = `${safePrefix}-${req.file.originalname}`;
         const dest = path.join(localUploadsDir, fileName);
         await fs.promises.writeFile(dest, req.file.buffer);
