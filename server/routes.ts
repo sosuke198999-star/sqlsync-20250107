@@ -8,6 +8,7 @@ import { insertClaimSchema, updateClaimSchema, type Claim } from "@shared/schema
 import { z } from "zod";
 import multer from "multer";
 import { uploadFileToDriveInTcarFolder, ensureTcarFolder, getTcarFolderName } from "./google-drive";
+import { apiAuth } from "./auth";
 import {
   sendClaimCreatedEmail,
   sendClaimAcceptedEmail,
@@ -18,6 +19,26 @@ import {
 import { loadNotificationSettings, saveNotificationSettings, type NotificationSettingsPayload } from "./notification-store";
 import { getRecipientsForEvent } from "./notification-logic";
 import { startOverdueNotifier } from "./overdue-notifier";
+
+const MAX_UPLOAD_MB_DEFAULT = 2048;
+const MAX_UPLOAD_MB_CAP = 2048;
+
+function getMaxUploadMb() {
+  const raw = process.env.MAX_UPLOAD_MB;
+  const mb = raw ? parseInt(raw, 10) : MAX_UPLOAD_MB_DEFAULT;
+  const safe = Number.isFinite(mb) && mb > 0 ? Math.min(mb, MAX_UPLOAD_MB_CAP) : MAX_UPLOAD_MB_DEFAULT;
+  return safe;
+}
+
+function getMaxUploadBytes() {
+  return getMaxUploadMb() * 1024 * 1024;
+}
+
+function sanitizeFileName(name: string) {
+  const base = path.basename(name || "");
+  const safe = base.replace(/[^a-zA-Z0-9._-]/g, "_").slice(0, 120);
+  return safe || "upload";
+}
 
 export async function registerRoutes(app: Express): Promise<Server> {
   const pkgPath = path.resolve(import.meta.dirname, "..", "package.json");
@@ -42,7 +63,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const pkg = JSON.parse(fs.readFileSync(pkgPath, "utf-8"));
       appName = pkg?.name ?? appName;
       appVersion = pkg?.version ?? appVersion;
-    } catch {}
+    } catch { }
     return { appName, appVersion, commit };
   };
 
@@ -63,11 +84,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
     if (!fs.existsSync(localUploadsDir)) {
       fs.mkdirSync(localUploadsDir, { recursive: true });
     }
-  } catch {}
-  app.use('/uploads', express.static(localUploadsDir));
+  } catch { }
+  app.use('/uploads', apiAuth, express.static(localUploadsDir));
+  app.use('/api', apiAuth);
+  app.get('/api/upload-limits', (_req, res) => {
+    res.json({
+      maxUploadMb: getMaxUploadMb(),
+      maxUploadBytes: getMaxUploadBytes(),
+    });
+  });
   app.get('/api/claims', async (req, res) => {
     try {
-      const claims = await storage.getAllClaims();
+      const status = req.query.status as string | undefined;
+      const claims = await storage.getAllClaims({ status });
       res.json(claims);
     } catch (error) {
       res.status(500).json({ error: 'Failed to fetch claims' });
@@ -89,7 +118,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post('/api/claims', async (req, res) => {
     try {
       const validatedData = insertClaimSchema.parse(req.body);
-      
+
       // Unified TCAR format: YYYYMM-XXXX (zero-padded, monthly sequential)
       const now = new Date();
       const yearMonth = `${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, '0')}`;
@@ -184,7 +213,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             }
           }
         }
-      } catch {}
+      } catch { }
 
       res.json(claim);
     } catch (error) {
@@ -221,7 +250,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  const upload = multer({ storage: multer.memoryStorage() });
+  const upload = multer({
+    storage: multer.diskStorage({}),
+    limits: { fileSize: getMaxUploadBytes() },
+  });
 
   app.post('/api/claims/:id/upload-document', upload.single('file'), async (req, res) => {
     try {
@@ -231,24 +263,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const claim = await storage.getClaim(req.params.id);
       if (!claim) {
+        await fs.promises.unlink(req.file.path).catch(() => { });
         return res.status(404).json({ error: 'Claim not found' });
       }
 
+      const originalName = sanitizeFileName(req.file.originalname);
       let result: { fileId: string; webViewLink: string } | undefined;
       try {
+        const fileStream = fs.createReadStream(req.file.path);
         result = await uploadFileToDriveInTcarFolder(
           claim.tcarNo,
-          req.file.originalname,
+          originalName,
           req.file.mimetype,
-          req.file.buffer
+          fileStream
         );
       } catch (e) {
         // Fallback to local storage when Google Drive is not configured
         const safePrefix = getTcarFolderName(claim.tcarNo);
-        const fileName = `${safePrefix}-${req.file.originalname}`;
+        const fileName = `${safePrefix}-${originalName}`;
         const dest = path.join(localUploadsDir, fileName);
-        await fs.promises.writeFile(dest, req.file.buffer);
+        await fs.promises.copyFile(req.file.path, dest);
         result = { fileId: fileName, webViewLink: `/uploads/${encodeURIComponent(fileName)}` } as any;
+      } finally {
+        await fs.promises.unlink(req.file.path).catch(() => { });
       }
       if (!result) {
         throw new Error("Failed to store document");
@@ -267,7 +304,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           if (isEmailConfigured() && recipients.length > 0) {
             void sendCountermeasureSubmittedEmail(updatedClaim as Claim, recipients);
           }
-        } catch {}
+        } catch { }
       }
 
       res.json({
@@ -290,23 +327,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const claim = await storage.getClaim(req.params.id);
       if (!claim) {
+        await fs.promises.unlink(req.file.path).catch(() => { });
         return res.status(404).json({ error: 'Claim not found' });
       }
 
+      const originalName = sanitizeFileName(req.file.originalname);
       let result: { fileId: string; webViewLink: string } | undefined;
       try {
+        const fileStream = fs.createReadStream(req.file.path);
         result = await uploadFileToDriveInTcarFolder(
           claim.tcarNo,
-          req.file.originalname,
+          originalName,
           req.file.mimetype,
-          req.file.buffer
+          fileStream
         );
       } catch (e) {
         const safePrefix = getTcarFolderName(claim.tcarNo);
-        const fileName = `${safePrefix}-${req.file.originalname}`;
+        const fileName = `${safePrefix}-${originalName}`;
         const dest = path.join(localUploadsDir, fileName);
-        await fs.promises.writeFile(dest, req.file.buffer);
+        await fs.promises.copyFile(req.file.path, dest);
         result = { fileId: fileName, webViewLink: `/uploads/${encodeURIComponent(fileName)}` } as any;
+      } finally {
+        await fs.promises.unlink(req.file.path).catch(() => { });
       }
       if (!result) {
         throw new Error("Failed to store attachment");
@@ -315,7 +357,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const attachment = {
         fileId: result.fileId,
         fileUrl: result.webViewLink,
-        fileName: req.file.originalname,
+        fileName: originalName,
         uploadedAt: new Date().toISOString(),
       };
       const next = [...(claim.attachments ?? []), attachment];

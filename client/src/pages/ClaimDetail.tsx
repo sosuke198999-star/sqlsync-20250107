@@ -37,10 +37,11 @@ function toClaimDetail(claim: Claim): ClaimDetail {
     id: claim.id,
     tcarNo: claim.tcarNo,
     customerDefectId: claim.customerDefectId ?? undefined,
-    defectCode: (claim as any).defectCode ?? undefined,
+    defectCode: claim.defectCode ?? undefined,
     customerName: claim.customerName,
     partNumber: claim.partNumber ?? undefined,
     dc: firstDc,
+    dcItems: claim.dcItems ?? undefined,
     defectName: claim.defectName,
     defectCount: claim.defectCount ?? undefined,
     occurrenceDate: claim.occurrenceDate ?? undefined,
@@ -48,11 +49,15 @@ function toClaimDetail(claim: Claim): ClaimDetail {
     receivedDate: claim.receivedDate,
     dueDate: claim.dueDate ?? undefined,
     remarks: claim.remarks ?? undefined,
+    assignee: claim.assignee ?? undefined,
     createdBy: claim.createdBy ?? undefined,
     assigneeTech: claim.assigneeTech ?? undefined,
     assigneeFactory: claim.assigneeFactory ?? undefined,
-    correctiveAction: claim.correctiveAction ?? undefined,
-    preventiveAction: claim.preventiveAction ?? undefined,
+    occurrenceProcess: claim.correctiveAction ?? undefined,
+    occurrenceAction: claim.preventiveAction ?? undefined,
+    countermeasureDc: claim.countermeasureDc ?? undefined,
+    driveFileUrl: claim.driveFileUrl ?? undefined,
+    attachments: claim.attachments ?? undefined,
     createdAt,
   };
 }
@@ -68,52 +73,6 @@ export default function ClaimDetail() {
   const { data: claim, isLoading, isError } = useQuery<Claim>({
     queryKey: [`/api/claims/${id}`],
     enabled: !!id,
-  });
-
-  const statusMutation = useMutation({
-    mutationFn: async (newStatus: ClaimStatus) => {
-      await apiRequest("PATCH", `/api/claims/${id}`, { status: newStatus });
-    },
-    onSuccess: (_data, newStatus) => {
-      queryClient.invalidateQueries({ queryKey: [`/api/claims/${id}`] });
-      queryClient.invalidateQueries({ queryKey: ["/api/claims"] });
-      toast({
-        title: t("detail.statusUpdate"),
-        description: `New status: ${t(`status.${newStatus}`)}`,
-      });
-    },
-    onError: (error: unknown) => {
-      const message = error instanceof Error ? error.message : String(error);
-      toast({
-        title: "Failed to update status",
-        description: message,
-        variant: "destructive",
-      });
-    },
-  });
-
-  const actionsMutation = useMutation({
-    mutationFn: async ({ corrective, preventive }: { corrective: string; preventive: string }) => {
-      await apiRequest("PATCH", `/api/claims/${id}`, {
-        correctiveAction: corrective,
-        preventiveAction: preventive,
-      });
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [`/api/claims/${id}`] });
-      toast({
-        title: t("detail.save"),
-        description: "Corrective / preventive actions saved",
-      });
-    },
-    onError: (error: unknown) => {
-      const message = error instanceof Error ? error.message : String(error);
-      toast({
-        title: "Failed to save actions",
-        description: message,
-        variant: "destructive",
-      });
-    },
   });
 
   const deleteMutation = useMutation({
@@ -136,13 +95,68 @@ export default function ClaimDetail() {
     onError: (error: unknown) => {
       const message = error instanceof Error ? error.message : String(error);
       toast({
-        title: t("detail.deleteFailedTitle"),
+        title: t("notifications.error"),
         description: message,
         variant: "destructive",
       });
     },
   });
 
+  const detailUpdateMutation = useMutation({
+    mutationFn: async (payload: {
+      customerDefectId: string;
+      customerName: string;
+      partNumber: string;
+      defectName: string;
+      defectCount: string;
+      occurrenceDate: string;
+      receivedDate: string;
+      dueDate: string;
+      assignee: string;
+      defectCode: string;
+      dcItems: Claim["dcItems"];
+      occurrenceProcess: string;
+      occurrenceAction: string;
+      countermeasureDc: string;
+      remarks: string;
+    }) => {
+      const parsedDefectCount = payload.defectCount.trim()
+        ? Number.parseInt(payload.defectCount, 10)
+        : undefined;
+      await apiRequest("PATCH", `/api/claims/${id}`, {
+        customerDefectId: payload.customerDefectId.trim() || undefined,
+        customerName: payload.customerName.trim() || undefined,
+        partNumber: payload.partNumber.trim() || undefined,
+        defectName: payload.defectName.trim() || undefined,
+        defectCount: Number.isNaN(parsedDefectCount) ? undefined : parsedDefectCount,
+        occurrenceDate: payload.occurrenceDate.trim() || undefined,
+        receivedDate: payload.receivedDate.trim() || undefined,
+        dueDate: payload.dueDate.trim() || undefined,
+        assignee: payload.assignee.trim() || undefined,
+        defectCode: payload.defectCode.trim() || undefined,
+        dcItems: payload.dcItems,
+        correctiveAction: payload.occurrenceProcess || undefined,
+        preventiveAction: payload.occurrenceAction || undefined,
+        countermeasureDc: payload.countermeasureDc || undefined,
+        remarks: payload.remarks || undefined,
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [`/api/claims/${id}`] });
+      toast({
+        title: t("detail.save"),
+        description: t("approvals.updateSaved"),
+      });
+    },
+    onError: (error: unknown) => {
+      const message = error instanceof Error ? error.message : String(error);
+      toast({
+        title: t("detail.deleteFailedTitle"),
+        description: message,
+        variant: "destructive",
+      });
+    },
+  });
   if (!id) {
     setLocation("/claims");
     return null;
@@ -219,8 +233,9 @@ export default function ClaimDetail() {
 
       <ClaimDetailView
         claim={mappedClaim}
-        onUpdateStatus={(newStatus) => statusMutation.mutate(newStatus)}
-        onSaveActions={(corrective, preventive) => actionsMutation.mutate({ corrective, preventive })}
+        onSaveDetails={(payload) => detailUpdateMutation.mutate(payload)}
+        isSaving={detailUpdateMutation.isPending}
+        canEdit={user?.role === "admin"}
       />
     </div>
   );

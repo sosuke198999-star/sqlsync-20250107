@@ -2,17 +2,26 @@ import { useState, useCallback } from "react";
 import { Upload, X, FileIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useTranslation } from "react-i18next";
+import { useQuery } from "@tanstack/react-query";
 
 interface FileUploadProps {
   onFilesChange?: (files: File[]) => void;
   // Called once per newly added file (optional)
   onFileAdd?: (file: File) => void;
+  maxSizeMb?: number;
+  showMaxSize?: boolean;
 }
 
-export default function FileUpload({ onFilesChange, onFileAdd }: FileUploadProps) {
+export default function FileUpload({ onFilesChange, onFileAdd, maxSizeMb, showMaxSize }: FileUploadProps) {
   const { t } = useTranslation();
   const [files, setFiles] = useState<File[]>([]);
   const [isDragging, setIsDragging] = useState(false);
+  const shouldShowMaxSize = showMaxSize !== false;
+  const { data: uploadLimits } = useQuery<{ maxUploadMb: number }>({
+    queryKey: ['/api/upload-limits'],
+    enabled: shouldShowMaxSize && typeof maxSizeMb !== "number",
+  });
+  const resolvedMaxSizeMb = typeof maxSizeMb === "number" ? maxSizeMb : uploadLimits?.maxUploadMb;
 
   const handleFiles = useCallback((newFiles: FileList | null) => {
     if (!newFiles) return;
@@ -75,6 +84,9 @@ export default function FileUpload({ onFilesChange, onFileAdd }: FileUploadProps
         <Upload className="h-10 w-10 mx-auto mb-3 text-muted-foreground" />
         <p className="text-sm text-muted-foreground">
           {t('newClaim.dragDrop')}
+          {shouldShowMaxSize && typeof resolvedMaxSizeMb === "number"
+            ? ` (${t('countermeasure.uploadMaxSize', { size: resolvedMaxSizeMb })})`
+            : ""}
         </p>
       </div>
 

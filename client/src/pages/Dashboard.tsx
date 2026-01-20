@@ -2,17 +2,15 @@ import StatsCard from "@/components/StatsCard";
 import ClaimCard from "@/components/ClaimCard";
 import { FileText, Clock, CheckCircle2, AlertCircle } from "lucide-react";
 import { useTranslation } from "react-i18next";
-import { useQuery } from "@tanstack/react-query";
 import type { Claim } from "@shared/schema";
 import { Skeleton } from "@/components/ui/skeleton";
 import { type ClaimStatus } from "@/components/StatusBadge";
+import { useClaims } from "@/hooks/useClaims";
 
 export default function Dashboard() {
   const { t } = useTranslation();
 
-  const { data: claims, isLoading } = useQuery<Claim[]>({
-    queryKey: ['/api/claims'],
-  });
+  const { data: claims, isLoading } = useClaims();
 
   const now = new Date();
   const currentMonth = now.getMonth();

@@ -19,7 +19,7 @@ export interface ClaimRow {
   partNumber?: string;
   dc?: string;
   defectName: string;
-  defectCount?: number;
+  totalQuantity?: number;
   occurrenceDate?: string;
   status: ClaimStatus;
   dueDate?: string;
@@ -52,11 +52,66 @@ export default function ClaimsTable({ claims, onViewClaim, onSort }: ClaimsTable
                 <ArrowUpDown className="ml-1 h-3 w-3" />
               </Button>
             </TableHead>
-            <TableHead className="hidden lg:table-cell">{t('table.customerDefectId')}</TableHead>
-            <TableHead>{t('table.customerName')}</TableHead>
-            <TableHead>{t('table.defectName')}</TableHead>
-            <TableHead className="hidden xl:table-cell">{t('table.partNumber')}</TableHead>
-            <TableHead className="hidden xl:table-cell text-center">{t('table.defectCount')}</TableHead>
+            <TableHead className="hidden lg:table-cell">
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-8 px-2"
+                onClick={() => onSort?.('customerDefectId')}
+                data-testid="button-sort-customer-defect-id"
+              >
+                {t('table.customerDefectId')}
+                <ArrowUpDown className="ml-1 h-3 w-3" />
+              </Button>
+            </TableHead>
+            <TableHead>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-8 px-2"
+                onClick={() => onSort?.('customerName')}
+                data-testid="button-sort-customer-name"
+              >
+                {t('table.customerName')}
+                <ArrowUpDown className="ml-1 h-3 w-3" />
+              </Button>
+            </TableHead>
+            <TableHead>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-8 px-2"
+                onClick={() => onSort?.('defectName')}
+                data-testid="button-sort-defect-name"
+              >
+                {t('table.defectName')}
+                <ArrowUpDown className="ml-1 h-3 w-3" />
+              </Button>
+            </TableHead>
+            <TableHead className="hidden xl:table-cell">
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-8 px-2"
+                onClick={() => onSort?.('partNumber')}
+                data-testid="button-sort-part-number"
+              >
+                {t('table.partNumber')}
+                <ArrowUpDown className="ml-1 h-3 w-3" />
+              </Button>
+            </TableHead>
+            <TableHead className="hidden xl:table-cell text-center">
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-8 px-2"
+                onClick={() => onSort?.('totalQuantity')}
+                data-testid="button-sort-total-quantity"
+              >
+                {t('table.totalQuantity')}
+                <ArrowUpDown className="ml-1 h-3 w-3" />
+              </Button>
+            </TableHead>
             <TableHead>
               <Button
                 variant="ghost"
@@ -69,7 +124,18 @@ export default function ClaimsTable({ claims, onViewClaim, onSort }: ClaimsTable
                 <ArrowUpDown className="ml-1 h-3 w-3" />
               </Button>
             </TableHead>
-            <TableHead className="hidden lg:table-cell">{t('table.dueDate')}</TableHead>
+            <TableHead className="hidden lg:table-cell">
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-8 px-2"
+                onClick={() => onSort?.('dueDate')}
+                data-testid="button-sort-due-date"
+              >
+                {t('table.dueDate')}
+                <ArrowUpDown className="ml-1 h-3 w-3" />
+              </Button>
+            </TableHead>
             <TableHead className="w-[80px]"></TableHead>
           </TableRow>
         </TableHeader>
@@ -96,8 +162,8 @@ export default function ClaimsTable({ claims, onViewClaim, onSort }: ClaimsTable
                 <TableCell className="hidden xl:table-cell text-sm text-muted-foreground" data-testid="text-part-number">
                   {claim.partNumber || '-'}
                 </TableCell>
-                <TableCell className="hidden xl:table-cell text-center" data-testid="text-defect-count">
-                  {claim.defectCount || '-'}
+                <TableCell className="hidden xl:table-cell text-center" data-testid="text-total-quantity">
+                  {claim.totalQuantity ?? '-'}
                 </TableCell>
                 <TableCell>
                   <StatusBadge status={claim.status} />

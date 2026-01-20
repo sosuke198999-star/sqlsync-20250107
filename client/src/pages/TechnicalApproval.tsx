@@ -11,6 +11,8 @@ import { ArrowLeft } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { useEffect, useState } from "react";
+import StatusBadge from "@/components/StatusBadge";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 export default function TechnicalApproval() {
   const { id } = useParams<{ id: string }>();
@@ -25,27 +27,53 @@ export default function TechnicalApproval() {
   });
 
   const [defectCode, setDefectCode] = useState("");
-  const [correctiveAction, setCorrectiveAction] = useState("");
-  const [preventiveAction, setPreventiveAction] = useState("");
-  const [remarks, setRemarks] = useState("");
-
+  const [occurrenceProcess, setOccurrenceProcess] = useState("");
+  const [occurrenceAction, setOccurrenceAction] = useState("");
+  const [countermeasureDc, setCountermeasureDc] = useState("");
+  const [defectCodeOptions] = useState<string[]>(() => {
+    try {
+      const stored = localStorage.getItem("defectCodeList");
+      const parsed = stored ? JSON.parse(stored) : [];
+      return Array.isArray(parsed) ? parsed : [];
+    } catch {
+      return [];
+    }
+  });
+  const [occurrenceProcessOptions] = useState<string[]>(() => {
+    try {
+      const stored = localStorage.getItem("occurrenceProcessList");
+      const parsed = stored ? JSON.parse(stored) : [];
+      return Array.isArray(parsed) ? parsed : [];
+    } catch {
+      return [];
+    }
+  });
   useEffect(() => {
     if (claim) {
-      setDefectCode((claim as any).defectCode || "");
-      setCorrectiveAction(claim.correctiveAction || "");
-      setPreventiveAction(claim.preventiveAction || "");
-      setRemarks(claim.remarks || "");
+      setDefectCode(claim.defectCode || "");
+      setOccurrenceProcess(claim.correctiveAction || "");
+      setOccurrenceAction(claim.preventiveAction || "");
+      setCountermeasureDc(claim.countermeasureDc || "");
     }
   }, [claim]);
+
+  const resolvedDefectCodeOptions =
+    defectCode && !defectCodeOptions.includes(defectCode)
+      ? [...defectCodeOptions, defectCode]
+      : defectCodeOptions;
+  const resolvedOccurrenceProcessOptions =
+    occurrenceProcess && !occurrenceProcessOptions.includes(occurrenceProcess)
+      ? [...occurrenceProcessOptions, occurrenceProcess]
+      : occurrenceProcessOptions;
 
   const updateMutation = useMutation({
     mutationFn: async () => {
       if (!id) return;
       await apiRequest("PATCH", `/api/claims/${id}`, {
-        defectCode: defectCode || undefined,
-        correctiveAction: correctiveAction || undefined,
-        preventiveAction: preventiveAction || undefined,
-        remarks,
+        defectCode: defectCode.trim(),
+        correctiveAction: occurrenceProcess || undefined,
+        preventiveAction: occurrenceAction || undefined,
+        countermeasureDc: countermeasureDc || undefined,
       });
     },
     onSuccess: () => {
@@ -59,6 +87,10 @@ export default function TechnicalApproval() {
     mutationFn: async () => {
       if (!id) return;
       await apiRequest("PATCH", `/api/claims/${id}`, {
+        defectCode: defectCode.trim(),
+        correctiveAction: occurrenceProcess || undefined,
+        preventiveAction: occurrenceAction || undefined,
+        countermeasureDc: countermeasureDc || undefined,
         status: "COMPLETED",
       });
     },
@@ -82,68 +114,245 @@ export default function TechnicalApproval() {
     return <div className="flex items-center justify-center h-96">Not found</div>;
   }
 
+  const ensureDefectCode = () => {
+    if (resolvedDefectCodeOptions.length === 0) {
+      toast({ title: t('approvals.noDefectCodeOptions'), variant: "destructive" });
+      return false;
+    }
+    if (!defectCode.trim()) {
+      toast({ title: t('approvals.defectCodeRequired'), variant: "destructive" });
+      return false;
+    }
+    return true;
+  };
+
+  const ensureOccurrenceProcess = () => {
+    if (resolvedOccurrenceProcessOptions.length === 0) {
+      toast({ title: t('approvals.noOccurrenceProcessOptions'), variant: "destructive" });
+      return false;
+    }
+    if (!occurrenceProcess.trim()) {
+      toast({ title: t('approvals.occurrenceProcessRequired'), variant: "destructive" });
+      return false;
+    }
+    return true;
+  };
+
   return (
     <div className="space-y-6">
-      <div className="flex items-center gap-4">
-        <Link href="/approvals">
-          <Button variant="ghost" size="icon">
-            <ArrowLeft className="h-5 w-5" />
-          </Button>
-        </Link>
-        <div>
-          <h1 className="text-3xl font-bold mb-2" data-testid="text-page-title">{t('approvals.title')}</h1>
-          <p className="text-muted-foreground">{t('approvals.subtitle')}</p>
+      <div className="flex flex-wrap items-start justify-between gap-4">
+        <div className="flex items-center gap-4">
+          <Link href="/approvals">
+            <Button variant="ghost" size="icon">
+              <ArrowLeft className="h-5 w-5" />
+            </Button>
+          </Link>
+          <div>
+            <h1 className="text-3xl font-bold mb-2" data-testid="text-page-title">{t('approvals.title')}</h1>
+            <p className="text-muted-foreground">{t('approvals.subtitle')}</p>
+          </div>
+        </div>
+        <div className="flex items-center gap-3">
+          <StatusBadge status={claim.status as any} />
         </div>
       </div>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>{t('countermeasure.claimInfo')}</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <Label className="text-muted-foreground">{t('table.tcarNo')}</Label>
+              <p className="font-medium" data-testid="text-tcar-no">{claim.tcarNo}</p>
+            </div>
+            <div>
+              <Label className="text-muted-foreground">{t('detail.createdAt')}</Label>
+              <p className="font-medium" data-testid="text-created-at">
+                {claim.createdAt ? new Date(claim.createdAt).toLocaleDateString('ja-JP') : '-'}
+              </p>
+            </div>
+            <div>
+              <Label className="text-muted-foreground">{t('table.customerDefectId')}</Label>
+              <p className="font-medium" data-testid="text-customer-defect-id">
+                {claim.customerDefectId || '-'}
+              </p>
+            </div>
+            <div>
+              <Label className="text-muted-foreground">{t('detail.receivedDate')}</Label>
+              <p className="font-medium" data-testid="text-received-date">
+                {claim.receivedDate || '-'}
+              </p>
+            </div>
+            <div>
+              <Label className="text-muted-foreground">{t('table.customerName')}</Label>
+              <p className="font-medium" data-testid="text-customer-name">{claim.customerName}</p>
+            </div>
+            <div>
+              <Label className="text-muted-foreground">{t('table.partNumber')}</Label>
+              <p className="font-medium" data-testid="text-part-number">{claim.partNumber || '-'}</p>
+            </div>
+            <div>
+              <Label className="text-muted-foreground">{t('table.dc')}</Label>
+              {claim.dcItems && claim.dcItems.length > 0 ? (
+                <div className="font-medium flex flex-wrap gap-2" data-testid="text-dc">
+                  {claim.dcItems.map((item, index) => (
+                    <span key={`${item.dc}-${index}`}>
+                      {item.dc}: {item.quantity}
+                    </span>
+                  ))}
+                </div>
+              ) : (
+                <p className="font-medium" data-testid="text-dc">-</p>
+              )}
+            </div>
+            <div>
+              <Label className="text-muted-foreground">{t('table.defectCount')}</Label>
+              <p className="font-medium" data-testid="text-defect-count">
+                {claim.defectCount ?? (claim.dcItems?.reduce((sum, item) => sum + (item.quantity ?? 0), 0) || '-')}
+              </p>
+            </div>
+            <div>
+              <Label className="text-muted-foreground">{t('table.occurrenceDate')}</Label>
+              <p className="font-medium" data-testid="text-occurrence-date">
+                {claim.occurrenceDate || '-'}
+              </p>
+            </div>
+            <div>
+              <Label className="text-muted-foreground">{t('detail.techAssignee')}</Label>
+              <p className="font-medium" data-testid="text-tech-assignee">{claim.assigneeTech || '-'}</p>
+            </div>
+            <div>
+              <Label className="text-muted-foreground">{t('detail.factoryAssignee')}</Label>
+              <p className="font-medium" data-testid="text-factory-assignee">
+                {claim.assigneeFactory || '-'}
+              </p>
+            </div>
+          </div>
+          <div>
+            <Label className="text-muted-foreground">{t('table.defectName')}</Label>
+            <p className="font-medium" data-testid="text-defect-name">{claim.defectName}</p>
+          </div>
+          <div>
+            <Label className="text-muted-foreground">{t('table.remarks')}</Label>
+            <p className="font-medium" data-testid="text-remarks">{claim.remarks || '-'}</p>
+          </div>
+        </CardContent>
+      </Card>
 
       <Card>
         <CardHeader>
           <CardTitle>{t('approvals.updateClaim')}</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <Label className="text-muted-foreground">TCAR</Label>
-              <div className="font-medium">{claim.tcarNo}</div>
-            </div>
-            <div>
-              <Label className="text-muted-foreground">{t('table.customerName')}</Label>
-              <div className="font-medium">{claim.customerName}</div>
-            </div>
-          </div>
-
           <div>
             <Label htmlFor="defect-code">{t('table.defectCode')}</Label>
-            <Input id="defect-code" value={defectCode} onChange={(e) => setDefectCode(e.target.value)} />
+            <Select
+              value={defectCode}
+              onValueChange={setDefectCode}
+              disabled={resolvedDefectCodeOptions.length === 0}
+            >
+              <SelectTrigger id="defect-code" data-testid="select-defect-code">
+                <SelectValue placeholder={t('approvals.selectDefectCode')} />
+              </SelectTrigger>
+              <SelectContent>
+                {resolvedDefectCodeOptions.length === 0 ? (
+                  <SelectItem value="__no-defect-code" disabled>
+                    {t('approvals.noDefectCodeOptions')}
+                  </SelectItem>
+                ) : (
+                  resolvedDefectCodeOptions.map((code) => (
+                    <SelectItem key={code} value={code}>
+                      {code}
+                    </SelectItem>
+                  ))
+                )}
+              </SelectContent>
+            </Select>
           </div>
           <div>
-            <Label htmlFor="corrective-action">{t('detail.correctiveAction')}</Label>
+            <Label htmlFor="occurrence-process">{t('approvals.occurrenceProcess')}</Label>
+            <Select
+              value={occurrenceProcess}
+              onValueChange={setOccurrenceProcess}
+              disabled={resolvedOccurrenceProcessOptions.length === 0}
+            >
+              <SelectTrigger id="occurrence-process" data-testid="select-occurrence-process">
+                <SelectValue placeholder={t('approvals.selectOccurrenceProcess')} />
+              </SelectTrigger>
+              <SelectContent>
+                {resolvedOccurrenceProcessOptions.length === 0 ? (
+                  <SelectItem value="__no-occurrence-process" disabled>
+                    {t('approvals.noOccurrenceProcessOptions')}
+                  </SelectItem>
+                ) : (
+                  resolvedOccurrenceProcessOptions.map((process) => (
+                    <SelectItem key={process} value={process}>
+                      {process}
+                    </SelectItem>
+                  ))
+                )}
+              </SelectContent>
+            </Select>
+          </div>
+          <div>
+            <Label htmlFor="occurrence-action">{t('approvals.occurrenceAction')}</Label>
             <Textarea
-              id="corrective-action"
-              value={correctiveAction}
-              onChange={(e) => setCorrectiveAction(e.target.value)}
+              id="occurrence-action"
+              value={occurrenceAction}
+              onChange={(e) => setOccurrenceAction(e.target.value)}
               className="min-h-24"
             />
           </div>
           <div>
-            <Label htmlFor="preventive-action">{t('detail.preventiveAction')}</Label>
-            <Textarea
-              id="preventive-action"
-              value={preventiveAction}
-              onChange={(e) => setPreventiveAction(e.target.value)}
-              className="min-h-24"
+            <Label htmlFor="countermeasure-dc">{t('approvals.countermeasureDc')}</Label>
+            <Input
+              id="countermeasure-dc"
+              value={countermeasureDc}
+              onChange={(e) => setCountermeasureDc(e.target.value)}
+              data-testid="input-countermeasure-dc"
             />
           </div>
-          <div>
-            <Label htmlFor="remarks">{t('table.remarks')}</Label>
-            <Textarea id="remarks" value={remarks} onChange={(e) => setRemarks(e.target.value)} />
-          </div>
-
           <div className="flex justify-end">
-            <Button variant="outline" onClick={() => updateMutation.mutate()} disabled={updateMutation.isPending}>
+            <Button
+              variant="outline"
+              onClick={() => {
+                if (!ensureDefectCode()) return;
+                if (!ensureOccurrenceProcess()) return;
+                updateMutation.mutate();
+              }}
+              disabled={updateMutation.isPending}
+            >
               {t('detail.save')}
             </Button>
           </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>{t('newClaim.attachments')}</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-2">
+          {claim.attachments && claim.attachments.length > 0 ? (
+            <ul className="space-y-2">
+              {claim.attachments.map((attachment, index) => (
+                <li key={`${attachment.fileId}-${index}`} className="text-sm">
+                  <a
+                    href={attachment.fileUrl}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="text-primary underline"
+                  >
+                    {attachment.fileName || attachment.fileId}
+                  </a>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p className="text-sm text-muted-foreground">-</p>
+          )}
         </CardContent>
       </Card>
 
@@ -177,7 +386,14 @@ export default function TechnicalApproval() {
         >
           {t('approvals.requestChanges')}
         </Button>
-        <Button onClick={() => approveMutation.mutate()} disabled={approveMutation.isPending}>
+        <Button
+          onClick={() => {
+            if (!ensureDefectCode()) return;
+            if (!ensureOccurrenceProcess()) return;
+            approveMutation.mutate();
+          }}
+          disabled={approveMutation.isPending}
+        >
           {t('approvals.approve')}
         </Button>
       </div>

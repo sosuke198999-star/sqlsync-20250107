@@ -47,8 +47,8 @@ async function getReplitAccessToken() {
   const xReplitToken = process.env.REPL_IDENTITY
     ? 'repl ' + process.env.REPL_IDENTITY
     : process.env.WEB_REPL_RENEWAL
-    ? 'depl ' + process.env.WEB_REPL_RENEWAL
-    : null;
+      ? 'depl ' + process.env.WEB_REPL_RENEWAL
+      : null;
 
   if (!xReplitToken || !hostname) {
     throw new Error('No Google auth configured');
@@ -122,7 +122,7 @@ export async function ensureTcarFolder(tcarNo: string): Promise<string> {
 export async function uploadFileToDrive(
   fileName: string,
   mimeType: string,
-  fileBuffer: Buffer,
+  fileBody: Buffer | Readable,
   parentFolderId?: string
 ): Promise<{ fileId: string; webViewLink: string }> {
   const drive = await getDriveClient();
@@ -134,7 +134,7 @@ export async function uploadFileToDrive(
 
   const media = {
     mimeType: mimeType,
-    body: Readable.from(fileBuffer),
+    body: Buffer.isBuffer(fileBody) ? Readable.from(fileBody) : fileBody,
   };
 
   const response = await drive.files.create({
@@ -174,7 +174,7 @@ export async function uploadFileToDriveInTcarFolder(
   tcarNo: string,
   originalFileName: string,
   mimeType: string,
-  fileBuffer: Buffer
+  fileBody: Buffer | Readable,
 ): Promise<{ fileId: string; webViewLink: string; folderId: string }> {
   const drive = await getDriveClient();
   const parent = process.env.GOOGLE_DRIVE_PARENT_FOLDER_ID;
@@ -186,7 +186,7 @@ export async function uploadFileToDriveInTcarFolder(
   const { fileId, webViewLink } = await uploadFileToDrive(
     fileName,
     mimeType,
-    fileBuffer,
+    fileBody,
     folderId
   );
 

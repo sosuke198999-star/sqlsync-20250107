@@ -79,6 +79,7 @@ export default function ClaimAcceptance() {
     mutationFn: async () => {
       await apiRequest('PATCH', `/api/claims/${id}`, {
         assigneeFactory: factoryAssignee,
+        assigneeTech: user?.name ?? undefined,
         status: 'PENDING_COUNTERMEASURE',
       });
     },
@@ -227,6 +228,12 @@ export default function ClaimAcceptance() {
               <p className="font-medium" data-testid="text-tcar-no">{claim.tcarNo}</p>
             </div>
             <div>
+              <Label className="text-muted-foreground">{t('detail.createdAt')}</Label>
+              <p className="font-medium" data-testid="text-created-at">
+                {claim.createdAt ? new Date(claim.createdAt).toLocaleDateString('ja-JP') : '-'}
+              </p>
+            </div>
+            <div>
               <Label className="text-muted-foreground">{t('table.customerDefectId')}</Label>
               <p className="font-medium" data-testid="text-customer-defect-id">
                 {claim.customerDefectId || '-'}
@@ -242,13 +249,29 @@ export default function ClaimAcceptance() {
             </div>
             <div>
               <Label className="text-muted-foreground">{t('table.dc')}</Label>
-              <p className="font-medium" data-testid="text-dc">
-                {claim.dcItems?.map(item => `${item.dc} (${item.quantity})`).join(', ') || '-'}
-              </p>
+              {claim.dcItems && claim.dcItems.length > 0 ? (
+                <div className="font-medium flex flex-wrap gap-2" data-testid="text-dc">
+                  {claim.dcItems.map((item, index) => (
+                    <span key={`${item.dc}-${index}`}>
+                      {item.dc}: {item.quantity}
+                    </span>
+                  ))}
+                </div>
+              ) : (
+                <p className="font-medium" data-testid="text-dc">-</p>
+              )}
             </div>
             <div>
               <Label className="text-muted-foreground">{t('table.defectCount')}</Label>
-              <p className="font-medium" data-testid="text-defect-count">{claim.defectCount || '-'}</p>
+              <p className="font-medium" data-testid="text-defect-count">
+                {claim.defectCount ?? (claim.dcItems?.reduce((sum, item) => sum + (item.quantity ?? 0), 0) || '-')}
+              </p>
+            </div>
+            <div>
+              <Label className="text-muted-foreground">{t('table.occurrenceDate')}</Label>
+              <p className="font-medium" data-testid="text-occurrence-date">
+                {claim.occurrenceDate || '-'}
+              </p>
             </div>
           </div>
           <div>

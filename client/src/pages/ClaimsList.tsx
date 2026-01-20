@@ -6,16 +6,41 @@ import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
 import { Link, useLocation } from "wouter";
 import { useTranslation } from "react-i18next";
-import { useQuery } from "@tanstack/react-query";
+import { useClaims } from "@/hooks/useClaims";
 import type { Claim } from "@shared/schema";
+
+type SortKey =
+  | 'tcarNo'
+  | 'customerDefectId'
+  | 'customerName'
+  | 'defectName'
+  | 'partNumber'
+  | 'totalQuantity'
+  | 'status'
+  | 'dueDate';
+
+const isSortKey = (value: string): value is SortKey => {
+  return [
+    'tcarNo',
+    'customerDefectId',
+    'customerName',
+    'defectName',
+    'partNumber',
+    'totalQuantity',
+    'status',
+    'dueDate',
+  ].includes(value);
+};
 
 export default function ClaimsList() {
   const { t } = useTranslation();
   const [, setLocation] = useLocation();
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
+  const [sortKey, setSortKey] = useState<SortKey>('tcarNo');
+  const [sortDir, setSortDir] = useState<'asc' | 'desc'>('asc');
 
-  const { data: claims, isLoading } = useQuery<Claim[]>({ queryKey: ["/api/claims"] });
+  const { data: claims, isLoading } = useClaims();
 
   const allClaims: ClaimRow[] = (claims || []).map((c) => ({
     id: c.id,
@@ -25,7 +50,9 @@ export default function ClaimsList() {
     partNumber: c.partNumber || undefined,
     dc: Array.isArray((c as any).dcItems) && (c as any).dcItems.length > 0 ? (c as any).dcItems[0].dc : undefined,
     defectName: c.defectName,
-    defectCount: c.defectCount || undefined,
+    totalQuantity: Array.isArray((c as any).dcItems)
+      ? (c as any).dcItems.reduce((sum: number, item: { quantity?: number }) => sum + (item?.quantity ?? 0), 0)
+      : undefined,
     occurrenceDate: c.occurrenceDate || undefined,
     status: c.status as any,
     dueDate: c.dueDate || undefined,
@@ -44,6 +71,53 @@ export default function ClaimsList() {
     const matchesStatus = statusFilter === 'all' || claim.status === statusFilter;
     return matchesSearch && matchesStatus;
   });
+
+  const getSortValue = (claim: ClaimRow, key: SortKey) => {
+    switch (key) {
+      case 'totalQuantity':
+        return claim.totalQuantity ?? null;
+      case 'dueDate': {
+        if (!claim.dueDate) return null;
+        const time = new Date(claim.dueDate).getTime();
+        return Number.isNaN(time) ? claim.dueDate : time;
+      }
+      case 'customerDefectId':
+        return claim.customerDefectId ?? null;
+      case 'customerName':
+        return claim.customerName ?? null;
+      case 'defectName':
+        return claim.defectName ?? null;
+      case 'partNumber':
+        return claim.partNumber ?? null;
+      case 'status':
+        return claim.status ?? null;
+      case 'tcarNo':
+      default:
+        return claim.tcarNo ?? null;
+    }
+  };
+
+  const sortedClaims = [...filteredClaims].sort((a, b) => {
+    const aValue = getSortValue(a, sortKey);
+    const bValue = getSortValue(b, sortKey);
+    if (aValue === null && bValue === null) return 0;
+    if (aValue === null) return 1;
+    if (bValue === null) return -1;
+    if (typeof aValue === 'number' && typeof bValue === 'number') {
+      return (aValue - bValue) * (sortDir === 'asc' ? 1 : -1);
+    }
+    return String(aValue).localeCompare(String(bValue), 'ja') * (sortDir === 'asc' ? 1 : -1);
+  });
+
+  const handleSort = (column: string) => {
+    if (!isSortKey(column)) return;
+    if (column === sortKey) {
+      setSortDir((prev) => (prev === 'asc' ? 'desc' : 'asc'));
+    } else {
+      setSortKey(column);
+      setSortDir('asc');
+    }
+  };
 
   return (
     <div className="space-y-6">
@@ -71,7 +145,7 @@ export default function ClaimsList() {
         <div className="text-muted-foreground text-center py-8">読み込み中...</div>
       ) : (
         <ClaimsTable
-          claims={filteredClaims}
+          claims={sortedClaims}
           onViewClaim={(id) => {
             const claim = filteredClaims.find(c => c.id === id);
             if (!claim) return;
@@ -86,7 +160,7 @@ export default function ClaimsList() {
               setLocation(`/claims/${id}`);
             }
           }}
-          onSort={(column) => console.log('Sort by:', column)}
+          onSort={handleSort}
         />
       )}
     </div>

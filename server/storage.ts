@@ -7,7 +7,7 @@ export interface IStorage {
   getUserByUsername(username: string): Promise<User | undefined>;
   createUser(user: InsertUser): Promise<User>;
   
-  getAllClaims(): Promise<Claim[]>;
+  getAllClaims(filters?: { status?: string }): Promise<Claim[]>;
   getClaim(id: string): Promise<Claim | undefined>;
   getClaimByTcarNo(tcarNo: string): Promise<Claim | undefined>;
   getLatestTcarForMonth(yearMonth: string): Promise<string | undefined>;
@@ -42,8 +42,12 @@ export class MemStorage implements IStorage {
     return user;
   }
 
-  async getAllClaims(): Promise<Claim[]> {
-    return Array.from(this.claims.values());
+  async getAllClaims(filters?: { status?: string }): Promise<Claim[]> {
+    let allClaims = Array.from(this.claims.values());
+    if (filters?.status) {
+      allClaims = allClaims.filter(c => c.status === filters.status);
+    }
+    return allClaims;
   }
 
   async getClaim(id: string): Promise<Claim | undefined> {
@@ -88,6 +92,7 @@ export class MemStorage implements IStorage {
       assigneeFactory: insertClaim.assigneeFactory ?? null,
       correctiveAction: insertClaim.correctiveAction ?? null,
       preventiveAction: insertClaim.preventiveAction ?? null,
+      countermeasureDc: (insertClaim as any).countermeasureDc ?? null,
       driveFileId: insertClaim.driveFileId ?? null,
       driveFileUrl: insertClaim.driveFileUrl ?? null,
       attachments: (insertClaim as any).attachments ?? [],
@@ -168,6 +173,7 @@ class SupabaseRestStorage implements IStorage {
       assigneeFactory: c.assigneeFactory ?? c.assignee_factory ?? null,
       correctiveAction: c.correctiveAction ?? c.corrective_action ?? null,
       preventiveAction: c.preventiveAction ?? c.preventive_action ?? null,
+      countermeasureDc: c.countermeasureDc ?? c.countermeasure_dc ?? null,
       driveFileId: c.driveFileId ?? c.drive_file_id ?? null,
       driveFileUrl: c.driveFileUrl ?? c.drive_file_url ?? null,
       attachments: c.attachments ?? [],
@@ -196,6 +202,7 @@ class SupabaseRestStorage implements IStorage {
       assignee_factory: insertClaim.assigneeFactory ?? null,
       corrective_action: insertClaim.correctiveAction ?? null,
       preventive_action: insertClaim.preventiveAction ?? null,
+      countermeasure_dc: (insertClaim as any).countermeasureDc ?? null,
       drive_file_id: insertClaim.driveFileId ?? null,
       drive_file_url: insertClaim.driveFileUrl ?? null,
       attachments: (insertClaim as any).attachments ?? [],
@@ -225,8 +232,11 @@ class SupabaseRestStorage implements IStorage {
     return z.any().parse(data[0]);
   }
 
-  async getAllClaims(): Promise<Claim[]> {
-    const url = `${this.baseUrl}/rest/v1/claims?select=*`;
+  async getAllClaims(filters?: { status?: string }): Promise<Claim[]> {
+    let url = `${this.baseUrl}/rest/v1/claims?select=*`;
+    if (filters?.status) {
+      url += `&status=eq.${encodeURIComponent(filters.status)}`;
+    }
     const data = await this.handle<any[]>(await fetch(url, { headers: this.headers() }));
     return data.map((c) => this.normalizeClaim(c));
   }
@@ -280,6 +290,7 @@ class SupabaseRestStorage implements IStorage {
       assignee_factory: updates.assigneeFactory,
       corrective_action: updates.correctiveAction,
       preventive_action: updates.preventiveAction,
+      countermeasure_dc: (updates as any).countermeasureDc,
       drive_file_id: updates.driveFileId,
       drive_file_url: updates.driveFileUrl,
       attachments: (updates as any).attachments,

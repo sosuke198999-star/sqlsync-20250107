@@ -39,6 +39,7 @@ export const claims = pgTable("claims", {
   assigneeFactory: text("assignee_factory"),
   correctiveAction: text("corrective_action"),
   preventiveAction: text("preventive_action"),
+  countermeasureDc: text("countermeasure_dc"),
   driveFileId: text("drive_file_id"),
   driveFileUrl: text("drive_file_url"),
   // New: separate attachments for registration-time files

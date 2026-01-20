@@ -5,9 +5,27 @@ import { setupVite, serveStatic, log } from "./vite";
 import fs from 'fs';
 import path from 'path';
 
+import helmet from "helmet";
+import rateLimit from "express-rate-limit";
+
 const app = express();
-app.use(express.json());
-app.use(express.urlencoded({ extended: false }));
+const isDev = process.env.NODE_ENV !== "production";
+
+// Security Middleware
+app.use(helmet(isDev ? { contentSecurityPolicy: false } : undefined));
+
+// Rate Limiting: 100 requests per 15 minutes
+const apiLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 100,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: "Too many requests, please try again later." }
+});
+app.use("/api", apiLimiter);
+
+app.use(express.json({ limit: "50mb" }));
+app.use(express.urlencoded({ extended: false, limit: "50mb" }));
 
 app.use((req, res, next) => {
   const start = Date.now();
@@ -40,9 +58,15 @@ app.use((req, res, next) => {
 });
 
 (async () => {
+  if (app.get("env") === "production" && !process.env.API_TOKEN) {
+    throw new Error("API_TOKEN is required in production");
+  }
   const server = await registerRoutes(app);
 
   app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
+    if (err?.code === "LIMIT_FILE_SIZE") {
+      return res.status(413).json({ message: "File too large" });
+    }
     const status = err.status || err.statusCode || 500;
     const message = err.message || "Internal Server Error";
 
@@ -81,7 +105,7 @@ app.use((req, res, next) => {
     const pkgPath = path.resolve(import.meta.dirname, '..', 'package.json');
     const pkg = JSON.parse(fs.readFileSync(pkgPath, 'utf-8'));
     appVersion = pkg?.version ?? appVersion;
-  } catch {}
+  } catch { }
 
   server.listen(listenOpts, () => {
     log(`serving on http://${host}:${port} (v${appVersion})`);

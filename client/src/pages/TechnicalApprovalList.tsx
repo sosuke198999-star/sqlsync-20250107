@@ -1,27 +1,24 @@
-import { useQuery } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import type { Claim, ClaimStatus } from "@shared/schema";
 import ClaimsTable, { type ClaimRow } from "@/components/ClaimsTable";
 import { Button } from "@/components/ui/button";
 import { Link } from "wouter";
+import { useClaims } from "@/hooks/useClaims";
 
 export default function TechnicalApprovalList() {
   const { t } = useTranslation();
-  const { data: claims, isLoading } = useQuery<Claim[]>({ queryKey: ["/api/claims"] });
+  const { data: claims, isLoading } = useClaims({ status: "PENDING_APPROVAL" });
 
-  // Show items pending approval (fallback to doc-ready legacy items)
-  const awaitingApproval = (claims || []).filter(
-    (c) => c.status === "PENDING_APPROVAL" || (c.status === "PENDING_COUNTERMEASURE" && !!c.driveFileUrl)
-  );
-
-  const rows: ClaimRow[] = awaitingApproval.map((c) => ({
+  const rows: ClaimRow[] = (claims || []).map((c) => ({
     id: c.id,
     tcarNo: c.tcarNo,
     customerDefectId: c.customerDefectId || undefined,
     customerName: c.customerName,
     partNumber: c.partNumber || undefined,
     defectName: c.defectName,
-    defectCount: c.defectCount || undefined,
+    totalQuantity: Array.isArray((c as any).dcItems)
+      ? (c as any).dcItems.reduce((sum: number, item: { quantity?: number }) => sum + (item?.quantity ?? 0), 0)
+      : undefined,
     status: c.status as ClaimStatus,
     dueDate: c.dueDate || undefined,
     assignee: c.assignee || undefined,

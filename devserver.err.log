@@ -3,73 +3,215 @@ Browserslist: browsers data (caniuse-lite) is 15 months old. Please run:
   Why you should do it regularly: https://github.com/browserslist/update-db#readme
 
 A PostCSS plugin did not pass the `from` option to `postcss.parse`. This may cause imported assets to be incorrectly transformed. If you've recently added a PostCSS plugin that raised this warning, please contact the package author to fix the issue.
-[drive] ensureTcarFolder failed: No Google auth configured
-[drive] ensureTcarFolder failed: No Google auth configured
-[drive] ensureTcarFolder failed: No Google auth configured
-[2m16:10:02[22m [31m[1m[vite][22m[39m [31mInternal server error: C:\Users\S.Arimoto\Desktop\開発\SQLSync-20250107\client\src\pages\ClaimAcceptance.tsx: Unexpected token (161:4)
-
-[0m [90m 159 |[31m
- [90m 160 |[31m   [36mconst[31m handleAccept [33m=[31m () [33m=>[31m {
-[31m[1m>[22m[31m[90m 161 |[31m     [36mif[31m ([33m![31mid) [36mreturn[31m[33m;[31m
- [90m     |[31m     [31m[1m^[22m[31m
- [90m 162 |[31m     [36mif[31m (techAssigneeOptions[33m.[31mlength [33m===[31m [35m0[31m [33m||[31m factoryGroupOptions[33m.[31mlength [33m===[31m [35m0[31m) {
- [90m 163 |[31m       toast({
- [90m 164 |[31m         title[33m:[31m t([32m'acceptance.noAssigneesTitle'[31m)[33m,[31m[0m[39m
-  Plugin: [35mvite:react-babel[39m
-  File: [36mC:/Users/S.Arimoto/Desktop/開発/SQLSync-20250107/client/src/pages/ClaimAcceptance.tsx[39m:161:4
-[33m  160|    const handleAccept = () => {
-  161|      if (!id) return;
-  162|      if (techAssigneeOptions.length === 0 || factoryGroupOptions.length === 0) {
-     |                         ^
-  163|        toast({
-  164|          title: t('acceptance.noAssigneesTitle'),[39m
-      at toParseError (C:\Users\S.Arimoto\Desktop\開発\SQLSync-20250107\node_modules\@babel\parser\src\parse-error.ts:95:45)
-      at TypeScriptParserMixin.raise (C:\Users\S.Arimoto\Desktop\開発\SQLSync-20250107\node_modules\@babel\parser\src\tokenizer\index.ts:1503:19)
-      at TypeScriptParserMixin.unexpected (C:\Users\S.Arimoto\Desktop\開発\SQLSync-20250107\node_modules\@babel\parser\src\tokenizer\index.ts:1543:16)
-      at TypeScriptParserMixin.parseExprAtom (C:\Users\S.Arimoto\Desktop\開発\SQLSync-20250107\node_modules\@babel\parser\src\parser\expression.ts:1350:16)
-      at TypeScriptParserMixin.parseExprAtom (C:\Users\S.Arimoto\Desktop\開発\SQLSync-20250107\node_modules\@babel\parser\src\plugins\jsx\index.ts:583:22)
-      at TypeScriptParserMixin.parseExprSubscripts (C:\Users\S.Arimoto\Desktop\開発\SQLSync-20250107\node_modules\@babel\parser\src\parser\expression.ts:734:23)
-      at TypeScriptParserMixin.parseUpdate (C:\Users\S.Arimoto\Desktop\開発\SQLSync-20250107\node_modules\@babel\parser\src\parser\expression.ts:713:21)
-      at TypeScriptParserMixin.parseMaybeUnary (C:\Users\S.Arimoto\Desktop\開発\SQLSync-20250107\node_modules\@babel\parser\src\parser\expression.ts:675:23)
-      at TypeScriptParserMixin.parseMaybeUnary (C:\Users\S.Arimoto\Desktop\開発\SQLSync-20250107\node_modules\@babel\parser\src\plugins\typescript\index.ts:3855:20)
-      at TypeScriptParserMixin.parseMaybeUnaryOrPrivate (C:\Users\S.Arimoto\Desktop\開発\SQLSync-20250107\node_modules\@babel\parser\src\parser\expression.ts:409:14)
-      at TypeScriptParserMixin.parseExprOps (C:\Users\S.Arimoto\Desktop\開発\SQLSync-20250107\node_modules\@babel\parser\src\parser\expression.ts:421:23)
-      at TypeScriptParserMixin.parseMaybeConditional (C:\Users\S.Arimoto\Desktop\開発\SQLSync-20250107\node_modules\@babel\parser\src\parser\expression.ts:376:23)
-      at TypeScriptParserMixin.parseMaybeAssign (C:\Users\S.Arimoto\Desktop\開発\SQLSync-20250107\node_modules\@babel\parser\src\parser\expression.ts:301:21)
-      at TypeScriptParserMixin.parseMaybeAssign (C:\Users\S.Arimoto\Desktop\開発\SQLSync-20250107\node_modules\@babel\parser\src\plugins\typescript\index.ts:3727:22)
-      at TypeScriptParserMixin.parseExpressionBase (C:\Users\S.Arimoto\Desktop\開発\SQLSync-20250107\node_modules\@babel\parser\src\parser\expression.ts:226:23)
-      at callback (C:\Users\S.Arimoto\Desktop\開発\SQLSync-20250107\node_modules\@babel\parser\src\parser\expression.ts:217:39)
-      at TypeScriptParserMixin.allowInAnd (C:\Users\S.Arimoto\Desktop\開発\SQLSync-20250107\node_modules\@babel\parser\src\parser\expression.ts:3192:12)
-      at TypeScriptParserMixin.parseExpression (C:\Users\S.Arimoto\Desktop\開発\SQLSync-20250107\node_modules\@babel\parser\src\parser\expression.ts:217:17)
-      at TypeScriptParserMixin.jsxParseExpressionContainer (C:\Users\S.Arimoto\Desktop\開発\SQLSync-20250107\node_modules\@babel\parser\src\plugins\jsx\index.ts:376:33)
-      at TypeScriptParserMixin.jsxParseElementAt (C:\Users\S.Arimoto\Desktop\開発\SQLSync-20250107\node_modules\@babel\parser\src\plugins\jsx\index.ts:500:24)
-      at TypeScriptParserMixin.jsxParseElement (C:\Users\S.Arimoto\Desktop\開発\SQLSync-20250107\node_modules\@babel\parser\src\plugins\jsx\index.ts:559:19)
-      at TypeScriptParserMixin.parseExprAtom (C:\Users\S.Arimoto\Desktop\開発\SQLSync-20250107\node_modules\@babel\parser\src\plugins\jsx\index.ts:573:21)
-      at TypeScriptParserMixin.parseExprSubscripts (C:\Users\S.Arimoto\Desktop\開発\SQLSync-20250107\node_modules\@babel\parser\src\parser\expression.ts:734:23)
-      at TypeScriptParserMixin.parseUpdate (C:\Users\S.Arimoto\Desktop\開発\SQLSync-20250107\node_modules\@babel\parser\src\parser\expression.ts:713:21)
-      at TypeScriptParserMixin.parseMaybeUnary (C:\Users\S.Arimoto\Desktop\開発\SQLSync-20250107\node_modules\@babel\parser\src\parser\expression.ts:675:23)
-      at TypeScriptParserMixin.parseMaybeUnary (C:\Users\S.Arimoto\Desktop\開発\SQLSync-20250107\node_modules\@babel\parser\src\plugins\typescript\index.ts:3855:20)
-      at TypeScriptParserMixin.parseMaybeUnaryOrPrivate (C:\Users\S.Arimoto\Desktop\開発\SQLSync-20250107\node_modules\@babel\parser\src\parser\expression.ts:409:14)
-      at TypeScriptParserMixin.parseExprOps (C:\Users\S.Arimoto\Desktop\開発\SQLSync-20250107\node_modules\@babel\parser\src\parser\expression.ts:421:23)
-      at TypeScriptParserMixin.parseMaybeConditional (C:\Users\S.Arimoto\Desktop\開発\SQLSync-20250107\node_modules\@babel\parser\src\parser\expression.ts:376:23)
-      at TypeScriptParserMixin.parseMaybeAssign (C:\Users\S.Arimoto\Desktop\開発\SQLSync-20250107\node_modules\@babel\parser\src\parser\expression.ts:301:21)
-      at fn (C:\Users\S.Arimoto\Desktop\開発\SQLSync-20250107\node_modules\@babel\parser\src\plugins\typescript\index.ts:3708:23)
-      at TypeScriptParserMixin.tryParse (C:\Users\S.Arimoto\Desktop\開発\SQLSync-20250107\node_modules\@babel\parser\src\parser\util.ts:174:20)
-      at TypeScriptParserMixin.parseMaybeAssign (C:\Users\S.Arimoto\Desktop\開発\SQLSync-20250107\node_modules\@babel\parser\src\plugins\typescript\index.ts:3707:20)
-      at TypeScriptParserMixin.parseExpressionBase (C:\Users\S.Arimoto\Desktop\開発\SQLSync-20250107\node_modules\@babel\parser\src\parser\expression.ts:226:23)
-      at callback (C:\Users\S.Arimoto\Desktop\開発\SQLSync-20250107\node_modules\@babel\parser\src\parser\expression.ts:217:39)
-      at TypeScriptParserMixin.allowInAnd (C:\Users\S.Arimoto\Desktop\開発\SQLSync-20250107\node_modules\@babel\parser\src\parser\expression.ts:3187:16)
-      at TypeScriptParserMixin.parseExpression (C:\Users\S.Arimoto\Desktop\開発\SQLSync-20250107\node_modules\@babel\parser\src\parser\expression.ts:217:17)
-      at TypeScriptParserMixin.parseReturnStatement (C:\Users\S.Arimoto\Desktop\開発\SQLSync-20250107\node_modules\@babel\parser\src\parser\statement.ts:1110:28)
-      at TypeScriptParserMixin.parseStatementContent (C:\Users\S.Arimoto\Desktop\開発\SQLSync-20250107\node_modules\@babel\parser\src\parser\statement.ts:538:21)
-      at TypeScriptParserMixin.parseStatementContent (C:\Users\S.Arimoto\Desktop\開発\SQLSync-20250107\node_modules\@babel\parser\src\plugins\typescript\index.ts:3185:20)
-      at TypeScriptParserMixin.parseStatementLike (C:\Users\S.Arimoto\Desktop\開発\SQLSync-20250107\node_modules\@babel\parser\src\parser\statement.ts:477:17)
-      at TypeScriptParserMixin.parseStatementListItem (C:\Users\S.Arimoto\Desktop\開発\SQLSync-20250107\node_modules\@babel\parser\src\parser\statement.ts:426:17)
-      at TypeScriptParserMixin.parseBlockOrModuleBlockBody (C:\Users\S.Arimoto\Desktop\開発\SQLSync-20250107\node_modules\@babel\parser\src\parser\statement.ts:1439:16)
-      at TypeScriptParserMixin.parseBlockBody (C:\Users\S.Arimoto\Desktop\開発\SQLSync-20250107\node_modules\@babel\parser\src\parser\statement.ts:1412:10)
-      at TypeScriptParserMixin.parseBlock (C:\Users\S.Arimoto\Desktop\開発\SQLSync-20250107\node_modules\@babel\parser\src\parser\statement.ts:1380:10)
-      at TypeScriptParserMixin.parseStatementContent (C:\Users\S.Arimoto\Desktop\開発\SQLSync-20250107\node_modules\@babel\parser\src\parser\statement.ts:617:21)
-      at TypeScriptParserMixin.parseStatementContent (C:\Users\S.Arimoto\Desktop\開発\SQLSync-20250107\node_modules\@babel\parser\src\plugins\typescript\index.ts:3185:20)
-      at TypeScriptParserMixin.parseStatementLike (C:\Users\S.Arimoto\Desktop\開発\SQLSync-20250107\node_modules\@babel\parser\src\parser\statement.ts:477:17)
-      at TypeScriptParserMixin.parseStatementOrSloppyAnnexBFunctionDeclaration (C:\Users\S.Arimoto\Desktop\開発\SQLSync-20250107\node_modules\@babel\parser\src\parser\statement.ts:446:17)
-      at TypeScriptParserMixin.parseIfStatement (C:\Users\S.Arimoto\Desktop\開発\SQLSync-20250107\node_modules\@babel\parser\src\parser\statement.ts:1089:28)
+[auth] API_TOKEN not set; /api is unprotected
+[auth] API_TOKEN not set; /api is unprotected
+[auth] API_TOKEN not set; /api is unprotected
+[auth] API_TOKEN not set; /api is unprotected
+[auth] API_TOKEN not set; /api is unprotected
+[auth] API_TOKEN not set; /api is unprotected
+[auth] API_TOKEN not set; /api is unprotected
+[auth] API_TOKEN not set; /api is unprotected
+[auth] API_TOKEN not set; /api is unprotected
+[auth] API_TOKEN not set; /api is unprotected
+[auth] API_TOKEN not set; /api is unprotected
+[auth] API_TOKEN not set; /api is unprotected
+[auth] API_TOKEN not set; /api is unprotected
+The `credentials` option is deprecated. Please use the `auth` object constructor instead. For more details, see https://cloud.google.com/docs/authentication/external/externally-sourced-credentials.
+The `fromJSON` method is deprecated. Please use the `JWT` constructor instead. For more details, see https://cloud.google.com/docs/authentication/external/externally-sourced-credentials.
+[auth] API_TOKEN not set; /api is unprotected
+The `credentials` option is deprecated. Please use the `auth` object constructor instead. For more details, see https://cloud.google.com/docs/authentication/external/externally-sourced-credentials.
+The `fromJSON` method is deprecated. Please use the `JWT` constructor instead. For more details, see https://cloud.google.com/docs/authentication/external/externally-sourced-credentials.
+[auth] API_TOKEN not set; /api is unprotected
+The `credentials` option is deprecated. Please use the `auth` object constructor instead. For more details, see https://cloud.google.com/docs/authentication/external/externally-sourced-credentials.
+The `fromJSON` method is deprecated. Please use the `JWT` constructor instead. For more details, see https://cloud.google.com/docs/authentication/external/externally-sourced-credentials.
+The `credentials` option is deprecated. Please use the `auth` object constructor instead. For more details, see https://cloud.google.com/docs/authentication/external/externally-sourced-credentials.
+The `fromJSON` method is deprecated. Please use the `JWT` constructor instead. For more details, see https://cloud.google.com/docs/authentication/external/externally-sourced-credentials.
+[auth] API_TOKEN not set; /api is unprotected
+[auth] API_TOKEN not set; /api is unprotected
+[auth] API_TOKEN not set; /api is unprotected
+[auth] API_TOKEN not set; /api is unprotected
+[auth] API_TOKEN not set; /api is unprotected
+[auth] API_TOKEN not set; /api is unprotected
+[auth] API_TOKEN not set; /api is unprotected
+[auth] API_TOKEN not set; /api is unprotected
+[auth] API_TOKEN not set; /api is unprotected
+[auth] API_TOKEN not set; /api is unprotected
+[auth] API_TOKEN not set; /api is unprotected
+[auth] API_TOKEN not set; /api is unprotected
+[auth] API_TOKEN not set; /api is unprotected
+[auth] API_TOKEN not set; /api is unprotected
+[auth] API_TOKEN not set; /api is unprotected
+[auth] API_TOKEN not set; /api is unprotected
+[auth] API_TOKEN not set; /api is unprotected
+[auth] API_TOKEN not set; /api is unprotected
+[auth] API_TOKEN not set; /api is unprotected
+[auth] API_TOKEN not set; /api is unprotected
+[auth] API_TOKEN not set; /api is unprotected
+[auth] API_TOKEN not set; /api is unprotected
+[auth] API_TOKEN not set; /api is unprotected
+[auth] API_TOKEN not set; /api is unprotected
+[auth] API_TOKEN not set; /api is unprotected
+[auth] API_TOKEN not set; /api is unprotected
+[auth] API_TOKEN not set; /api is unprotected
+[auth] API_TOKEN not set; /api is unprotected
+[auth] API_TOKEN not set; /api is unprotected
+[auth] API_TOKEN not set; /api is unprotected
+[auth] API_TOKEN not set; /api is unprotected
+[auth] API_TOKEN not set; /api is unprotected
+[auth] API_TOKEN not set; /api is unprotected
+[auth] API_TOKEN not set; /api is unprotected
+[auth] API_TOKEN not set; /api is unprotected
+[auth] API_TOKEN not set; /api is unprotected
+[auth] API_TOKEN not set; /api is unprotected
+[auth] API_TOKEN not set; /api is unprotected
+[auth] API_TOKEN not set; /api is unprotected
+[auth] API_TOKEN not set; /api is unprotected
+[auth] API_TOKEN not set; /api is unprotected
+[auth] API_TOKEN not set; /api is unprotected
+[auth] API_TOKEN not set; /api is unprotected
+[auth] API_TOKEN not set; /api is unprotected
+[auth] API_TOKEN not set; /api is unprotected
+[auth] API_TOKEN not set; /api is unprotected
+[auth] API_TOKEN not set; /api is unprotected
+[auth] API_TOKEN not set; /api is unprotected
+[auth] API_TOKEN not set; /api is unprotected
+[auth] API_TOKEN not set; /api is unprotected
+[auth] API_TOKEN not set; /api is unprotected
+[auth] API_TOKEN not set; /api is unprotected
+[auth] API_TOKEN not set; /api is unprotected
+[auth] API_TOKEN not set; /api is unprotected
+[auth] API_TOKEN not set; /api is unprotected
+[auth] API_TOKEN not set; /api is unprotected
+[auth] API_TOKEN not set; /api is unprotected
+[auth] API_TOKEN not set; /api is unprotected
+The `credentials` option is deprecated. Please use the `auth` object constructor instead. For more details, see https://cloud.google.com/docs/authentication/external/externally-sourced-credentials.
+The `fromJSON` method is deprecated. Please use the `JWT` constructor instead. For more details, see https://cloud.google.com/docs/authentication/external/externally-sourced-credentials.
+[auth] API_TOKEN not set; /api is unprotected
+[auth] API_TOKEN not set; /api is unprotected
+[auth] API_TOKEN not set; /api is unprotected
+[auth] API_TOKEN not set; /api is unprotected
+[auth] API_TOKEN not set; /api is unprotected
+[auth] API_TOKEN not set; /api is unprotected
+[auth] API_TOKEN not set; /api is unprotected
+[auth] API_TOKEN not set; /api is unprotected
+[auth] API_TOKEN not set; /api is unprotected
+[auth] API_TOKEN not set; /api is unprotected
+The `credentials` option is deprecated. Please use the `auth` object constructor instead. For more details, see https://cloud.google.com/docs/authentication/external/externally-sourced-credentials.
+The `fromJSON` method is deprecated. Please use the `JWT` constructor instead. For more details, see https://cloud.google.com/docs/authentication/external/externally-sourced-credentials.
+[auth] API_TOKEN not set; /api is unprotected
+[auth] API_TOKEN not set; /api is unprotected
+[auth] API_TOKEN not set; /api is unprotected
+[auth] API_TOKEN not set; /api is unprotected
+[auth] API_TOKEN not set; /api is unprotected
+[auth] API_TOKEN not set; /api is unprotected
+The `credentials` option is deprecated. Please use the `auth` object constructor instead. For more details, see https://cloud.google.com/docs/authentication/external/externally-sourced-credentials.
+The `fromJSON` method is deprecated. Please use the `JWT` constructor instead. For more details, see https://cloud.google.com/docs/authentication/external/externally-sourced-credentials.
+The `credentials` option is deprecated. Please use the `auth` object constructor instead. For more details, see https://cloud.google.com/docs/authentication/external/externally-sourced-credentials.
+The `fromJSON` method is deprecated. Please use the `JWT` constructor instead. For more details, see https://cloud.google.com/docs/authentication/external/externally-sourced-credentials.
+[auth] API_TOKEN not set; /api is unprotected
+[auth] API_TOKEN not set; /api is unprotected
+[auth] API_TOKEN not set; /api is unprotected
+[auth] API_TOKEN not set; /api is unprotected
+[auth] API_TOKEN not set; /api is unprotected
+[auth] API_TOKEN not set; /api is unprotected
+[auth] API_TOKEN not set; /api is unprotected
+[auth] API_TOKEN not set; /api is unprotected
+[auth] API_TOKEN not set; /api is unprotected
+[auth] API_TOKEN not set; /api is unprotected
+[auth] API_TOKEN not set; /api is unprotected
+[auth] API_TOKEN not set; /api is unprotected
+[auth] API_TOKEN not set; /api is unprotected
+[auth] API_TOKEN not set; /api is unprotected
+[auth] API_TOKEN not set; /api is unprotected
+[auth] API_TOKEN not set; /api is unprotected
+[auth] API_TOKEN not set; /api is unprotected
+[auth] API_TOKEN not set; /api is unprotected
+[auth] API_TOKEN not set; /api is unprotected
+[auth] API_TOKEN not set; /api is unprotected
+[auth] API_TOKEN not set; /api is unprotected
+[auth] API_TOKEN not set; /api is unprotected
+[auth] API_TOKEN not set; /api is unprotected
+[auth] API_TOKEN not set; /api is unprotected
+[auth] API_TOKEN not set; /api is unprotected
+[auth] API_TOKEN not set; /api is unprotected
+[auth] API_TOKEN not set; /api is unprotected
+[auth] API_TOKEN not set; /api is unprotected
+[auth] API_TOKEN not set; /api is unprotected
+[auth] API_TOKEN not set; /api is unprotected
+[auth] API_TOKEN not set; /api is unprotected
+[auth] API_TOKEN not set; /api is unprotected
+[auth] API_TOKEN not set; /api is unprotected
+[auth] API_TOKEN not set; /api is unprotected
+[auth] API_TOKEN not set; /api is unprotected
+[auth] API_TOKEN not set; /api is unprotected
+[auth] API_TOKEN not set; /api is unprotected
+[auth] API_TOKEN not set; /api is unprotected
+[auth] API_TOKEN not set; /api is unprotected
+[auth] API_TOKEN not set; /api is unprotected
+[auth] API_TOKEN not set; /api is unprotected
+[auth] API_TOKEN not set; /api is unprotected
+[auth] API_TOKEN not set; /api is unprotected
+[auth] API_TOKEN not set; /api is unprotected
+[auth] API_TOKEN not set; /api is unprotected
+[auth] API_TOKEN not set; /api is unprotected
+[auth] API_TOKEN not set; /api is unprotected
+[auth] API_TOKEN not set; /api is unprotected
+[auth] API_TOKEN not set; /api is unprotected
+[auth] API_TOKEN not set; /api is unprotected
+[auth] API_TOKEN not set; /api is unprotected
+[auth] API_TOKEN not set; /api is unprotected
+[auth] API_TOKEN not set; /api is unprotected
+[auth] API_TOKEN not set; /api is unprotected
+[auth] API_TOKEN not set; /api is unprotected
+[auth] API_TOKEN not set; /api is unprotected
+[auth] API_TOKEN not set; /api is unprotected
+[auth] API_TOKEN not set; /api is unprotected
+[auth] API_TOKEN not set; /api is unprotected
+[auth] API_TOKEN not set; /api is unprotected
+[auth] API_TOKEN not set; /api is unprotected
+[auth] API_TOKEN not set; /api is unprotected
+[auth] API_TOKEN not set; /api is unprotected
+[auth] API_TOKEN not set; /api is unprotected
+[auth] API_TOKEN not set; /api is unprotected
+[auth] API_TOKEN not set; /api is unprotected
+[auth] API_TOKEN not set; /api is unprotected
+[auth] API_TOKEN not set; /api is unprotected
+[auth] API_TOKEN not set; /api is unprotected
+[auth] API_TOKEN not set; /api is unprotected
+[auth] API_TOKEN not set; /api is unprotected
+[auth] API_TOKEN not set; /api is unprotected
+[auth] API_TOKEN not set; /api is unprotected
+[auth] API_TOKEN not set; /api is unprotected
+[auth] API_TOKEN not set; /api is unprotected
+[auth] API_TOKEN not set; /api is unprotected
+[auth] API_TOKEN not set; /api is unprotected
+[auth] API_TOKEN not set; /api is unprotected
+[auth] API_TOKEN not set; /api is unprotected
+[auth] API_TOKEN not set; /api is unprotected
+[auth] API_TOKEN not set; /api is unprotected
+[auth] API_TOKEN not set; /api is unprotected
+[auth] API_TOKEN not set; /api is unprotected
+[auth] API_TOKEN not set; /api is unprotected
+[auth] API_TOKEN not set; /api is unprotected
+[auth] API_TOKEN not set; /api is unprotected
+[auth] API_TOKEN not set; /api is unprotected
+[auth] API_TOKEN not set; /api is unprotected
+[auth] API_TOKEN not set; /api is unprotected
+[auth] API_TOKEN not set; /api is unprotected
+[auth] API_TOKEN not set; /api is unprotected
+[auth] API_TOKEN not set; /api is unprotected
+[auth] API_TOKEN not set; /api is unprotected
+[auth] API_TOKEN not set; /api is unprotected
+[auth] API_TOKEN not set; /api is unprotected
+[auth] API_TOKEN not set; /api is unprotected
+[auth] API_TOKEN not set; /api is unprotected
+[auth] API_TOKEN not set; /api is unprotected
+[auth] API_TOKEN not set; /api is unprotected
+[auth] API_TOKEN not set; /api is unprotected
+[auth] API_TOKEN not set; /api is unprotected
+[auth] API_TOKEN not set; /api is unprotected
+[auth] API_TOKEN not set; /api is unprotected
+[auth] API_TOKEN not set; /api is unprotected
+[auth] API_TOKEN not set; /api is unprotected
+[auth] API_TOKEN not set; /api is unprotected
+[auth] API_TOKEN not set; /api is unprotected

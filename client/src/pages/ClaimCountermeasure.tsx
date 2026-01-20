@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useParams, useLocation, Link } from "wouter";
 import { useTranslation } from "react-i18next";
 import { ArrowLeft } from "lucide-react";
@@ -39,6 +39,15 @@ export default function ClaimCountermeasure() {
     queryKey: [`/api/claims/${id}`],
     enabled: !!id,
   });
+  const { data: uploadLimits } = useQuery<{ maxUploadMb: number }>({
+    queryKey: ['/api/upload-limits'],
+  });
+
+  useEffect(() => {
+    if (claim?.remarks) {
+      setComment(claim.remarks);
+    }
+  }, [claim]);
 
   const submitMutation = useMutation({
     mutationFn: async () => {
@@ -46,6 +55,10 @@ export default function ClaimCountermeasure() {
       if (comment) {
         payload.remarks = comment;
       }
+
+      const nextStatus = claim!.status === 'COMPLETED' ? 'COMPLETED' : 'PENDING_APPROVAL';
+      payload.status = nextStatus;
+
       await apiRequest('PATCH', `/api/claims/${id}`, payload);
     },
     onSuccess: () => {
@@ -208,16 +221,6 @@ export default function ClaimCountermeasure() {
       <Card>
         <CardHeader>
           <CardTitle>{t('countermeasure.claimInfo')}</CardTitle>
-          <Button
-            variant="ghost"
-            size="icon"
-            className="ml-2"
-            onClick={() => setLocation(`/claims/${id}`)}
-            title="詳細を見る"
-            data-testid="button-view-detail"
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.477 0 8.268 2.943 9.542 7-1.274 4.057-5.065 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
-          </Button>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -226,9 +229,21 @@ export default function ClaimCountermeasure() {
               <p className="font-medium" data-testid="text-tcar-no">{claim.tcarNo}</p>
             </div>
             <div>
+              <Label className="text-muted-foreground">{t('detail.createdAt')}</Label>
+              <p className="font-medium" data-testid="text-created-at">
+                {claim.createdAt ? new Date(claim.createdAt).toLocaleDateString('ja-JP') : '-'}
+              </p>
+            </div>
+            <div>
               <Label className="text-muted-foreground">{t('table.customerDefectId')}</Label>
               <p className="font-medium" data-testid="text-customer-defect-id">
                 {claim.customerDefectId || '-'}
+              </p>
+            </div>
+            <div>
+              <Label className="text-muted-foreground">{t('detail.receivedDate')}</Label>
+              <p className="font-medium" data-testid="text-received-date">
+                {claim.receivedDate || '-'}
               </p>
             </div>
             <div>
@@ -238,6 +253,32 @@ export default function ClaimCountermeasure() {
             <div>
               <Label className="text-muted-foreground">{t('table.partNumber')}</Label>
               <p className="font-medium" data-testid="text-part-number">{claim.partNumber || '-'}</p>
+            </div>
+            <div>
+              <Label className="text-muted-foreground">{t('table.dc')}</Label>
+              {claim.dcItems && claim.dcItems.length > 0 ? (
+                <div className="font-medium flex flex-wrap gap-2" data-testid="text-dc">
+                  {claim.dcItems.map((item, index) => (
+                    <span key={`${item.dc}-${index}`}>
+                      {item.dc}: {item.quantity}
+                    </span>
+                  ))}
+                </div>
+              ) : (
+                <p className="font-medium" data-testid="text-dc">-</p>
+              )}
+            </div>
+            <div>
+              <Label className="text-muted-foreground">{t('table.defectCount')}</Label>
+              <p className="font-medium" data-testid="text-defect-count">
+                {claim.defectCount ?? (claim.dcItems?.reduce((sum, item) => sum + (item.quantity ?? 0), 0) || '-')}
+              </p>
+            </div>
+            <div>
+              <Label className="text-muted-foreground">{t('table.occurrenceDate')}</Label>
+              <p className="font-medium" data-testid="text-occurrence-date">
+                {claim.occurrenceDate || '-'}
+              </p>
             </div>
             <div>
               <Label className="text-muted-foreground">{t('detail.techAssignee')}</Label>
@@ -254,6 +295,32 @@ export default function ClaimCountermeasure() {
             <Label className="text-muted-foreground">{t('table.defectName')}</Label>
             <p className="font-medium" data-testid="text-defect-name">{claim.defectName}</p>
           </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>{t('newClaim.attachments')}</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-2">
+          {claim.attachments && claim.attachments.length > 0 ? (
+            <ul className="space-y-2">
+              {claim.attachments.map((attachment, index) => (
+                <li key={`${attachment.fileId}-${index}`} className="text-sm">
+                  <a
+                    href={attachment.fileUrl}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="text-primary underline"
+                  >
+                    {attachment.fileName || attachment.fileId}
+                  </a>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p className="text-sm text-muted-foreground">-</p>
+          )}
         </CardContent>
       </Card>
 
@@ -279,8 +346,10 @@ export default function ClaimCountermeasure() {
             </div>
           ) : (
             <div className="space-y-2">
-              <Label className="text-muted-foreground">{t('countermeasure.uploadPlaceholder')}</Label>
-              <FileUpload onFileAdd={(file) => uploadMutation.mutate(file)} />
+              <FileUpload
+                onFileAdd={(file) => uploadMutation.mutate(file)}
+                maxSizeMb={uploadLimits?.maxUploadMb}
+              />
             </div>
           )}
         </CardContent>
@@ -299,9 +368,12 @@ export default function ClaimCountermeasure() {
               value={comment}
               onChange={(e) => setComment(e.target.value)}
               className="min-h-32"
+              disabled={!!claim.remarks}
               data-testid="textarea-comment"
             />
-          </div>
+          </div>
+
+
         </CardContent>
       </Card>
 
@@ -313,10 +385,10 @@ export default function ClaimCountermeasure() {
         </Link>
         <Button
           onClick={handleSubmit}
-          disabled={submitMutation.isPending || (!comment && !claim.driveFileUrl)}
+          disabled={submitMutation.isPending || uploadMutation.isPending || (!comment && !claim.driveFileUrl)}
           data-testid="button-submit"
         >
-          {submitMutation.isPending ? '登録中...' : t('countermeasure.submit')}
+          {uploadMutation.isPending ? 'アップロード中...' : (submitMutation.isPending ? '登録中...' : t('countermeasure.submit'))}
         </Button>
       </div>
     </div>

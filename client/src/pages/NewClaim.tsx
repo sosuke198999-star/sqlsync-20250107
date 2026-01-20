@@ -35,7 +35,7 @@ export default function NewClaim() {
       const created: Claim = await res.json();
 
       // Ensure lists/statistics reflect the new item
-      await queryClient.invalidateQueries({ queryKey: ['/api/claims'] });
+      await queryClient.invalidateQueries({ queryKey: ["claims"] });
 
       // If files were selected during registration, upload them as attachments (separate from countermeasure doc)
       if (data.files && data.files.length > 0) {
