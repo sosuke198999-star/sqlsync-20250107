@@ -4,24 +4,13 @@ import ClaimsTable, { type ClaimRow } from "@/components/ClaimsTable";
 import { Button } from "@/components/ui/button";
 import { Link } from "wouter";
 import { useClaims } from "@/hooks/useClaims";
-import { calculateTotalQuantity } from "@/lib/claimUtils";
+import { mapClaimsToClaimRows } from "@/lib/claimMappers";
 
 export default function TechnicalApprovalList() {
   const { t } = useTranslation();
   const { data: claims, isLoading } = useClaims({ status: "PENDING_APPROVAL" });
 
-  const rows: ClaimRow[] = (claims || []).map((c) => ({
-    id: c.id,
-    tcarNo: c.tcarNo,
-    customerDefectId: c.customerDefectId || undefined,
-    customerName: c.customerName,
-    partNumber: c.partNumber || undefined,
-    defectName: c.defectName,
-    totalQuantity: calculateTotalQuantity(c),
-    status: c.status as ClaimStatus,
-    dueDate: c.dueDate || undefined,
-    assignee: c.assignee || undefined,
-  }));
+  const rows: ClaimRow[] = mapClaimsToClaimRows(claims || []);
 
   return (
     <div className="space-y-6">

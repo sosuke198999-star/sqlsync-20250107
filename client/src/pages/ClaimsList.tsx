@@ -8,7 +8,7 @@ import { Link, useLocation } from "wouter";
 import { useTranslation } from "react-i18next";
 import { useClaims } from "@/hooks/useClaims";
 import type { Claim } from "@shared/schema";
-import { calculateTotalQuantity, getFirstDc } from "@/lib/claimUtils";
+import { mapClaimsToClaimRows } from "@/lib/claimMappers";
 
 type SortKey =
   | 'tcarNo'
@@ -43,20 +43,7 @@ export default function ClaimsList() {
 
   const { data: claims, isLoading } = useClaims();
 
-  const allClaims: ClaimRow[] = (claims || []).map((c) => ({
-    id: c.id,
-    tcarNo: c.tcarNo,
-    customerDefectId: c.customerDefectId || undefined,
-    customerName: c.customerName,
-    partNumber: c.partNumber || undefined,
-    dc: getFirstDc(c),
-    defectName: c.defectName,
-    totalQuantity: calculateTotalQuantity(c),
-    occurrenceDate: c.occurrenceDate || undefined,
-    status: c.status as any,
-    dueDate: c.dueDate || undefined,
-    assignee: c.assignee || undefined,
-  }));
+  const allClaims: ClaimRow[] = mapClaimsToClaimRows(claims || []);
 
   const visibleClaims = allClaims.filter((claim) => claim.status !== "COMPLETED");
 
