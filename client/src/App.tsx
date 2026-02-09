@@ -20,15 +20,13 @@ import CompletedList from "@/pages/CompletedList";
 import Settings from "@/pages/Settings";
 import NotificationSettings from "@/pages/NotificationSettings";
 import NotFound from "@/pages/not-found";
-import { useTranslation } from "react-i18next";
 import { AuthProvider, useAuth } from "@/lib/auth";
 import Login from "@/pages/Login";
 import AdminUsers from "@/pages/AdminUsers";
 import VersionInfo from "@/components/VersionInfo";
+import Analytics from "@/pages/Analytics";
 
 function Router() {
-  const { t } = useTranslation();
-  
   return (
     <Switch>
       <Route path="/" component={Dashboard} />
@@ -45,14 +43,7 @@ function Router() {
       <Route path="/settings" component={Settings} />
       <Route path="/notifications" component={NotificationSettings} />
       <Route path="/admin/users" component={AdminUsers} />
-      <Route path="/analytics">
-        <div className="space-y-6">
-          <div>
-            <h1 className="text-3xl font-bold mb-2">{t('nav.analytics')}</h1>
-            <p className="text-muted-foreground">KPI・分析機能は今後実装予定です</p>
-          </div>
-        </div>
-      </Route>
+      <Route path="/analytics" component={Analytics} />
       <Route component={NotFound} />
     </Switch>
   );
@@ -104,3 +95,4 @@ export default function App() {
     </AuthProvider>
   );
 }
+

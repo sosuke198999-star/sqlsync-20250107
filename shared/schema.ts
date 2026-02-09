@@ -1,5 +1,5 @@
 import { sql } from "drizzle-orm";
-import { pgTable, text, varchar, integer, timestamp, jsonb } from "drizzle-orm/pg-core";
+import { pgTable, text, varchar, integer, timestamp, jsonb, boolean } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
@@ -26,6 +26,7 @@ export const claims = pgTable("claims", {
   defectCode: text("defect_code"),
   customerName: text("customer_name").notNull(),
   partNumber: text("part_number"),
+  sortingRequired: boolean("sorting_required").notNull().default(false),
   dcItems: jsonb("dc_items").$type<DcItem[]>().notNull().default(sql`'[]'::jsonb`),
   defectName: text("defect_name").notNull(),
   defectCount: integer("defect_count"),
@@ -58,6 +59,7 @@ export const insertClaimSchema = createInsertSchema(claims)
   })
   .extend({
     dcItems: z.array(dcItemSchema).min(1, "At least one DC item is required"),
+    sortingRequired: z.boolean().optional().default(false),
   });
 
 export const updateClaimSchema = insertClaimSchema.partial().extend({
@@ -68,7 +70,10 @@ export const updateClaimSchema = insertClaimSchema.partial().extend({
 
 export type InsertClaim = z.infer<typeof insertClaimSchema>;
 export type UpdateClaim = z.infer<typeof updateClaimSchema>;
-export type Claim = typeof claims.$inferSelect;
+export type Claim = typeof claims.$inferSelect & {
+  dcItems: DcItem[];
+  attachments: Attachment[];
+};
 
 export type ClaimStatus =
   | 'PENDING_ACCEPTANCE'

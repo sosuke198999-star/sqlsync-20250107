@@ -23,19 +23,10 @@ import {
 import StatusBadge from "@/components/StatusBadge";
 import { ArrowUpDown, Eye } from "lucide-react";
 import { Input } from "@/components/ui/input";
+import { calculateTotalQuantity } from "@/lib/claimUtils";
+import { toDate, formatDate } from "@/lib/dateUtils";
 
 type CompletedRow = { claim: Claim; year: string; sortTime: number };
-
-const toDate = (value?: string | Date | null) => {
-  if (!value) return null;
-  const date = value instanceof Date ? value : new Date(value);
-  return Number.isNaN(date.getTime()) ? null : date;
-};
-
-const formatDate = (value?: string | Date | null) => {
-  const date = toDate(value);
-  return date ? date.toLocaleDateString('ja-JP') : '-';
-};
 
 const getYearFromClaim = (claim: Claim, unknownYearLabel: string) => {
   const date =
@@ -54,15 +45,6 @@ const getSortTime = (claim: Claim) => {
     toDate(claim.occurrenceDate);
   if (!date) return 0;
   return date.getTime();
-};
-
-const getTotalQuantity = (claim: Claim) => {
-  return Array.isArray((claim as any).dcItems)
-    ? (claim as any).dcItems.reduce(
-        (sum: number, item: { quantity?: number }) => sum + (item?.quantity ?? 0),
-        0
-      )
-    : undefined;
 };
 
 const escapeCsvValue = (value: string) => {
@@ -124,7 +106,7 @@ export default function CompletedList() {
     if (!searchQuery.trim()) return true;
     const q = searchQuery.trim().toLowerCase();
     const claim = row.claim;
-    const totalQuantity = getTotalQuantity(claim);
+    const totalQuantity = calculateTotalQuantity(claim);
     const haystack = [
       claim.tcarNo,
       claim.customerDefectId,
@@ -157,12 +139,7 @@ export default function CompletedList() {
         case "partNumber":
           return claim.partNumber ?? "";
         case "totalQuantity":
-          return Array.isArray((claim as any).dcItems)
-            ? (claim as any).dcItems.reduce(
-                (sum: number, item: { quantity?: number }) => sum + (item?.quantity ?? 0),
-                0
-              )
-            : 0;
+          return calculateTotalQuantity(claim) ?? 0;
         case "defectCode":
           return claim.defectCode ?? "";
         case "occurrenceProcess":
@@ -207,7 +184,7 @@ export default function CompletedList() {
     const lines = [
       headers.map((header) => escapeCsvValue(header.label)).join(","),
       ...sortedRows.map(({ claim }) => {
-        const totalQuantity = getTotalQuantity(claim);
+        const totalQuantity = calculateTotalQuantity(claim);
         const rowValues: Record<string, string> = {
           tcarNo: claim.tcarNo ?? "",
           customerDefectId: claim.customerDefectId ?? "",
@@ -445,7 +422,7 @@ export default function CompletedList() {
                 </TableRow>
               ) : (
                 sortedRows.map(({ claim }) => {
-                  const totalQuantity = getTotalQuantity(claim);
+                  const totalQuantity = calculateTotalQuantity(claim);
                   return (
                     <TableRow key={claim.id} className="hover-elevate" data-testid={`row-claim-${claim.id}`}>
                       <TableCell className="font-mono font-medium px-2 py-2" data-testid="text-tcar-no">

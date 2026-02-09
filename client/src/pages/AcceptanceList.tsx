@@ -4,6 +4,7 @@ import ClaimsTable, { type ClaimRow } from "@/components/ClaimsTable";
 import { Button } from "@/components/ui/button";
 import { Link } from "wouter";
 import { useClaims } from "@/hooks/useClaims";
+import { calculateTotalQuantity } from "@/lib/claimUtils";
 
 export default function AcceptanceList() {
   const { t } = useTranslation();
@@ -16,9 +17,7 @@ export default function AcceptanceList() {
     customerName: c.customerName,
     partNumber: c.partNumber || undefined,
     defectName: c.defectName,
-    totalQuantity: Array.isArray((c as any).dcItems)
-      ? (c as any).dcItems.reduce((sum: number, item: { quantity?: number }) => sum + (item?.quantity ?? 0), 0)
-      : undefined,
+    totalQuantity: calculateTotalQuantity(c),
     status: c.status as ClaimStatus,
     dueDate: c.dueDate || undefined,
     assignee: c.assignee || undefined,

@@ -11,10 +11,12 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
+import { Checkbox } from "@/components/ui/checkbox";
 import FileUpload from "./FileUpload";
 import { useTranslation } from "react-i18next";
 import { Plus, X, Calendar as CalendarIcon } from "lucide-react";
 import type { DcItem } from "@shared/schema";
+import { STORAGE_KEYS } from "@/lib/storageKeys";
 
 interface NewClaimFormProps {
   onSubmit?: (data: ClaimFormData) => void | Promise<void>;
@@ -25,6 +27,7 @@ export interface ClaimFormData {
   customerDefectId: string;
   customerName: string;
   partNumber: string;
+  sortingRequired: boolean;
   dcItems: DcItem[];
   defectName: string;
   occurrenceDate: string;
@@ -48,7 +51,7 @@ export default function NewClaimForm({ onSubmit, onCancel }: NewClaimFormProps) 
   const occurrenceRef = useRef<HTMLInputElement>(null);
   const [customerOptions] = useState<string[]>(() => {
     try {
-      const saved = JSON.parse(localStorage.getItem('customerList') || '[]');
+      const saved = JSON.parse(localStorage.getItem(STORAGE_KEYS.CUSTOMER_LIST) || '[]');
       return Array.isArray(saved) && saved.length > 0 ? saved : defaultCustomerOptions;
     } catch {
       return defaultCustomerOptions;
@@ -58,6 +61,7 @@ export default function NewClaimForm({ onSubmit, onCancel }: NewClaimFormProps) 
     customerDefectId: '',
     customerName: '',
     partNumber: '',
+    sortingRequired: false,
     dcItems: [{ dc: '', quantity: 1 }],
     defectName: '',
     occurrenceDate: '',
@@ -75,7 +79,6 @@ export default function NewClaimForm({ onSubmit, onCancel }: NewClaimFormProps) 
     setIsSubmitting(true);
     try {
       await Promise.resolve(onSubmit?.(formData));
-      console.log('Form submitted:', formData);
     } finally {
       submittingRef.current = false;
       setIsSubmitting(false);
@@ -202,6 +205,20 @@ export default function NewClaimForm({ onSubmit, onCancel }: NewClaimFormProps) 
                   <CalendarIcon className="h-5 w-5" />
                 </button>
               </div>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <Checkbox
+                id="sorting-required"
+                checked={formData.sortingRequired}
+                onCheckedChange={(checked) =>
+                  setFormData({ ...formData, sortingRequired: checked === true })
+                }
+                data-testid="checkbox-sorting-required"
+              />
+              <Label htmlFor="sorting-required" className="font-normal">
+                {t('newClaim.sortingRequired')}
+              </Label>
             </div>
           </div>
 

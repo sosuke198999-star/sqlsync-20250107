@@ -8,6 +8,7 @@ import { Link, useLocation } from "wouter";
 import { useTranslation } from "react-i18next";
 import { useClaims } from "@/hooks/useClaims";
 import type { Claim } from "@shared/schema";
+import { calculateTotalQuantity, getFirstDc } from "@/lib/claimUtils";
 
 type SortKey =
   | 'tcarNo'
@@ -48,11 +49,9 @@ export default function ClaimsList() {
     customerDefectId: c.customerDefectId || undefined,
     customerName: c.customerName,
     partNumber: c.partNumber || undefined,
-    dc: Array.isArray((c as any).dcItems) && (c as any).dcItems.length > 0 ? (c as any).dcItems[0].dc : undefined,
+    dc: getFirstDc(c),
     defectName: c.defectName,
-    totalQuantity: Array.isArray((c as any).dcItems)
-      ? (c as any).dcItems.reduce((sum: number, item: { quantity?: number }) => sum + (item?.quantity ?? 0), 0)
-      : undefined,
+    totalQuantity: calculateTotalQuantity(c),
     occurrenceDate: c.occurrenceDate || undefined,
     status: c.status as any,
     dueDate: c.dueDate || undefined,

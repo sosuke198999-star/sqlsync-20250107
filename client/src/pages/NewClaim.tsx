@@ -21,6 +21,7 @@ export default function NewClaim() {
         customerDefectId: data.customerDefectId || undefined,
         customerName: data.customerName,
         partNumber: data.partNumber || undefined,
+        sortingRequired: data.sortingRequired,
         dcItems: data.dcItems,
         defectName: data.defectName,
         occurrenceDate: data.occurrenceDate || undefined,

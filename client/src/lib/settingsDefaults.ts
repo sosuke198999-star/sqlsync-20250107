@@ -1,3 +1,5 @@
+import { STORAGE_KEYS } from "./storageKeys";
+
 export type AssigneePerson = {
   name: string;
   email: string;
@@ -117,7 +119,7 @@ export function getStoredFactoryGroups(): FactoryAssigneeGroup[] {
   if (typeof window === "undefined") return fallback;
 
   try {
-    const storedGroups = localStorage.getItem("factoryAssigneeGroups");
+    const storedGroups = localStorage.getItem(STORAGE_KEYS.FACTORY_ASSIGNEE_GROUPS);
     if (storedGroups) {
       const parsed = JSON.parse(storedGroups);
       const sanitized = sanitizeFactoryGroups(parsed);
@@ -194,7 +196,7 @@ export function getStoredSalesGroups(): SalesAssigneeGroup[] {
   if (typeof window === "undefined") return fallback;
 
   try {
-    const storedGroups = localStorage.getItem("salesAssigneeGroups");
+    const storedGroups = localStorage.getItem(STORAGE_KEYS.SALES_ASSIGNEE_GROUPS);
     if (storedGroups) {
       const parsed = JSON.parse(storedGroups);
       const sanitized = sanitizeSalesGroups(parsed);
