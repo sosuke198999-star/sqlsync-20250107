@@ -732,3 +732,11 @@
 [2m9:24:28[22m [36m[1m[vite][22m[39m [32mpage reload [39m[2msrc/lib/settingsDefaults.ts[22m
 [2m9:25:33[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/components/NewClaimForm.tsx, /src/index.css?v=J4XLhNsAQKt-voUEa-Zwe[22m
 [2m9:25:43[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/components/NewClaimForm.tsx, /src/index.css?v=J4XLhNsAQKt-voUEa-Zwe[22m
+[2m11:11:57[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/AcceptanceList.tsx, /src/index.css?v=J4XLhNsAQKt-voUEa-Zwe[22m
+[2m11:12:09[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/AcceptanceList.tsx, /src/index.css?v=J4XLhNsAQKt-voUEa-Zwe[22m
+[2m11:12:21[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/ClaimsList.tsx, /src/index.css?v=J4XLhNsAQKt-voUEa-Zwe[22m
+[2m11:12:33[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/ClaimsList.tsx, /src/index.css?v=J4XLhNsAQKt-voUEa-Zwe[22m
+[2m11:12:44[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/CountermeasureList.tsx, /src/index.css?v=J4XLhNsAQKt-voUEa-Zwe[22m
+[2m11:12:55[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/CountermeasureList.tsx, /src/index.css?v=J4XLhNsAQKt-voUEa-Zwe[22m
+[2m11:13:06[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/TechnicalApprovalList.tsx, /src/index.css?v=J4XLhNsAQKt-voUEa-Zwe[22m
+[2m11:13:17[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/pages/TechnicalApprovalList.tsx, /src/index.css?v=J4XLhNsAQKt-voUEa-Zwe[22m

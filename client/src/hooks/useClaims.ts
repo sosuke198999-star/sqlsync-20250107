@@ -25,5 +25,8 @@ export const useClaims = (filters: ClaimFilters = {}) => {
   return useQuery<Claim[], Error>({
     queryKey: ["claims", filters],
     queryFn: () => fetchClaims(filters),
+    staleTime: 1000 * 60 * 5,      // 5 minutes - claims are frequently updated
+    gcTime: 1000 * 60 * 10,        // 10 minutes - garbage collection time
+    refetchOnWindowFocus: false,    // Disable refetch on window focus
   });
 };
